@@ -1,23 +1,32 @@
-use miniquad::*;
 
-struct Stage {}
-impl EventHandler for Stage {
-    fn update(&mut self, _ctx: &mut Context) {}
+mod shader;
+mod images;
+mod game;
+use miniquad::conf::{Icon, Conf};
+//use images::snake_bg::SNAKE_BG_RGB;
+use images::snake_body::SNAKE_BODY_RGB;
+use images::snake_body_32::SNAKE_BODY_32_RGB;
+use images::snake_body_16::SNAKE_BODY_16_RGB;
 
-    fn draw(&mut self, ctx: &mut Context) {
-        ctx.clear(Some((0., 1., 0., 1.)), None, None);
+pub fn samu_icon() -> Icon {
+    Icon{
+        small: SNAKE_BODY_16_RGB,
+        medium: SNAKE_BODY_32_RGB,
+        big: SNAKE_BODY_RGB
     }
 }
 
 fn main() {
     miniquad::start(
-        conf::Conf {
-            window_title: "Miniquad".to_string(),
-            window_width: 1024,
-            window_height: 768,
-            fullscreen: true,
-            ..Default::default()
+        Conf {
+            window_title: "AmbuSnake".to_string(),
+            window_width: 1600,
+            window_height: 896,
+            window_resizable: false,
+            fullscreen: false,
+            icon: Some(samu_icon()),
+            .. Default::default()
         },
-        |_ctx| Box::new(Stage {}),
+        |mut ctx| Box::new(game::Game::new(&mut ctx)),
     );
 }
