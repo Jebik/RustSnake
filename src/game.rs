@@ -96,7 +96,7 @@ fn show_score(score: i32) {
 
 impl EventHandler for Game 
 {
-    fn key_up_event(&mut self, _ctx: &mut Context, _keycode: KeyCode, _keymods: KeyMods) 
+    fn key_up_event(&mut self, ctx: &mut Context, _keycode: KeyCode, _keymods: KeyMods) 
     {
         //On attend un premier input pour pas lancer tout de suite le jeu
         if !self.running
@@ -111,7 +111,7 @@ impl EventHandler for Game
                 KeyCode::Left => self.snake.try_add(Dir::LEFT),
                 KeyCode::Down => self.snake.try_add(Dir::DOWN),
                 KeyCode::Right => self.snake.try_add(Dir::RIGHT),
-                KeyCode::Escape => _ctx.quit(), 
+                KeyCode::Escape => ctx.quit(), 
                 _ => ()             
             }   
         }
@@ -129,11 +129,11 @@ impl EventHandler for Game
     {
         ctx.begin_default_pass(Default::default());
 
-        self.bg.draw();
+        self.bg.draw(ctx);
 
         //SnakeDraw
-        self.snake.draw();
-        self.bonus.draw();
+        self.snake.draw(ctx);
+        self.bonus.draw(ctx);
 
         ctx.end_render_pass();
 

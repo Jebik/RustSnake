@@ -1,5 +1,3 @@
-use std::borrow::BorrowMut;
-
 use crate::shader::shader::{meta, Uniforms, Vec2, Vertex, FRAGMENT, VERTEX};
 use miniquad::{
     Bindings, Buffer, BufferLayout, BufferType, Context, Pipeline, Shader, Texture,
@@ -17,7 +15,6 @@ pub enum ROTATION
     Clockwise270
 }
 pub struct GraphicalObject {
-    ctx: Context,
     //ForDrawing
     width: f32,
     height: f32,
@@ -27,26 +24,26 @@ pub struct GraphicalObject {
     pipeline: Pipeline,
 }
 impl GraphicalObject {
-    pub fn rotate(&mut self, rotation: ROTATION)
+    pub fn rotate(&mut self, ctx: &mut Context, rotation: ROTATION)
     {
         let square_vertices: [Vertex; 4] = get_rot_vertex(rotation, self.width, self.height);    
-        let vertex_buffer = Buffer::immutable(self.ctx.borrow_mut(), BufferType::VertexBuffer, &square_vertices);
+        let vertex_buffer = Buffer::immutable(ctx, BufferType::VertexBuffer, &square_vertices);
         self.bindings.vertex_buffers = vec![vertex_buffer];
     }
 
-    pub fn draw(&mut self, x: f32, y: f32) {
-        self.ctx.apply_pipeline(&self.pipeline);
-        self.ctx.apply_bindings(&self.bindings);
-        self.ctx.apply_uniforms(&Uniforms {
+    pub fn draw(&mut self, ctx: &mut Context, x: f32, y: f32) {
+        ctx.apply_pipeline(&self.pipeline);
+        ctx.apply_bindings(&self.bindings);
+        ctx.apply_uniforms(&Uniforms {
             offset: (
                 self.x_offset + (2. * x / (SCREEN_WIDTH/self.width)) - 1.,
                 self.y_offset + (2. * y / (SCREEN_HEIGHT/self.height)) - 1.,
             ),
         });
-        self.ctx.draw(0, 6, 1);
+        ctx.draw(0, 6, 1);
     }
 
-    pub(crate) fn new(context: &mut Context, texture: &[u8], width: u8, height: u8) -> GraphicalObject {
+    pub(crate) fn new(ctx: &mut Context, texture: &[u8], width: i16, height: i16) -> GraphicalObject {
         let widhtf = f32::from(width);
         let heightf = f32::from(height);
 
@@ -54,13 +51,12 @@ impl GraphicalObject {
         let y_offset = heightf / SCREEN_HEIGHT;
 
         GraphicalObject {
-            ctx: *context,
             width: widhtf,
             height: heightf,
             x_offset,
             y_offset,
-            bindings: init_bindings(context, texture, widhtf, heightf),
-            pipeline: init_pipeline(context)
+            bindings: init_bindings(ctx, texture, widhtf, heightf),
+            pipeline: init_pipeline(ctx)
         }
     }       
 }

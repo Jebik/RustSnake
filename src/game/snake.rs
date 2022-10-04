@@ -165,13 +165,13 @@ impl Snake {
     }
 
     
-    pub fn draw(&mut self) {
-        self.head.rotate(get_rotation(self.dir));
-        self.head.draw(self.real.x, self.real.y);
+    pub fn draw(&mut self, ctx: &mut Context) {
+        self.head.rotate(ctx, get_rotation(self.dir));
+        self.head.draw(ctx, self.real.x, self.real.y);
         //SnakeDraw
         for b in &self.body_part
         {
-            self.body.draw(b.real.x, b.real.y);
+            self.body.draw(ctx, b.real.x, b.real.y);
         }
     }
 

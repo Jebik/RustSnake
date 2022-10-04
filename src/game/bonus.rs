@@ -21,8 +21,8 @@ impl Bonus {
         }
     }
     
-    pub fn draw(&mut self) 
+    pub fn draw(&mut self, ctx :&mut Context) 
     {
-        self.graphic.draw(f32::from(self.pos.x), f32::from(self.pos.y));        
+        self.graphic.draw(ctx, f32::from(self.pos.x), f32::from(self.pos.y));        
     }
 }
