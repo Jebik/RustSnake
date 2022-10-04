@@ -198,6 +198,7 @@ dependencies = [
  "miniquad",
  "rand",
  "webp",
+ "winapi",
 ]
 
 [[package]]

@@ -1,5 +1,8 @@
+use std::ffi::CString;
+
 use miniquad::{EventHandler, Context, KeyCode, KeyMods};
 use rand::Rng;
+use winapi::um::winuser::{MessageBoxA, MB_OK, MB_ICONINFORMATION};
 
 mod bonus;
 mod snake;
@@ -72,6 +75,7 @@ impl Game
             && self.snake.curr.y == self.bonus.pos.y
         {
             //We got apple
+            self.score += 1;
             self.snake.grow();
             self.spawn_bonus();
         }
@@ -92,6 +96,20 @@ impl Game
 
 fn show_score(score: i32) {
     //WIN API MESSAGE SCORE
+    let mut message_body = "Vous avez perdu\n\n".to_owned();
+    message_body += "Score: ";
+    message_body += &score.to_string();
+
+    let lp_text = CString::new(message_body).unwrap();
+    let lp_caption = CString::new("Felicitation").unwrap();
+    unsafe {
+        MessageBoxA(
+            std::ptr::null_mut(),
+            lp_text.as_ptr(),
+            lp_caption.as_ptr(),
+            MB_OK | MB_ICONINFORMATION
+        );
+    }
 }
 
 impl EventHandler for Game 
