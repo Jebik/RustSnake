@@ -86,7 +86,6 @@ impl Game
             || self.snake.dest.y < 0 || self.snake.dest.y > self.height 
             || self.snake.eat_himself()
         {
-            eprintln!("GAME OVER");
             show_score(self.score);
             self.running = false;
             self.init();
@@ -101,7 +100,7 @@ fn show_score(score: i32) {
     message_body += &score.to_string();
 
     let lp_text = CString::new(message_body).unwrap();
-    let lp_caption = CString::new("Felicitation").unwrap();
+    let lp_caption = CString::new("GAME OVER").unwrap();
     unsafe {
         MessageBoxA(
             std::ptr::null_mut(),
