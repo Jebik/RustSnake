@@ -83,9 +83,15 @@ impl Game
             || self.snake.eat_himself()
         {
             eprintln!("GAME OVER");
+            show_score(self.score);
+            self.running = false;
             self.init();
         }
     }
+}
+
+fn show_score(score: i32) {
+    //WIN API MESSAGE SCORE
 }
 
 impl EventHandler for Game 
