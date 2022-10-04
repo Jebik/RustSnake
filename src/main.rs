@@ -1,20 +1,9 @@
-
+use miniquad::conf::Conf;
+mod graphical_object;
+mod pos;
 mod shader;
 mod images;
 mod game;
-use miniquad::conf::{Icon, Conf};
-//use images::snake_bg::SNAKE_BG_RGB;
-use images::snake_body::SNAKE_BODY_RGB;
-use images::snake_body_32::SNAKE_BODY_32_RGB;
-use images::snake_body_16::SNAKE_BODY_16_RGB;
-
-pub fn samu_icon() -> Icon {
-    Icon{
-        small: SNAKE_BODY_16_RGB,
-        medium: SNAKE_BODY_32_RGB,
-        big: SNAKE_BODY_RGB
-    }
-}
 
 //CREATE LOGICAL OBJECT
 //CUR POS
@@ -41,7 +30,6 @@ fn main() {
             window_height: 896,
             window_resizable: false,
             fullscreen: false,
-            icon: Some(samu_icon()),
             .. Default::default()
         },
         |mut ctx| Box::new(game::Game::new(&mut ctx)),

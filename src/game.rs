@@ -52,11 +52,11 @@ impl Game
         let mut rng = rand::thread_rng();
         let x:i16 = rng.gen_range(0..self.width);
         let y:i16 = rng.gen_range(0..self.height);
-        self.bonus.x = x;
-        self.bonus.y = y;
+        self.bonus.pos.x = x;
+        self.bonus.pos.y = y;
     }
 
-    fn real_game_update(&mut self, ctx: &mut Context) 
+    fn real_game_update(&mut self) 
     {
         //MovingSnake and Checking if reach a case
         let reach = self.snake.check_reach();
@@ -68,18 +68,18 @@ impl Game
         //Check if game over.
         self.check_game_over();
         //Check if on bonus
-        if self.snake.curr_x == self.bonus.x 
-            && self.snake.curr_y == self.bonus.y
+        if self.snake.curr.x == self.bonus.pos.x 
+            && self.snake.curr.y == self.bonus.pos.y
         {
             //We got apple
-            self.snake.grow(ctx);
+            self.snake.grow();
             self.spawn_bonus();
         }
     }
 
     fn check_game_over(&mut self) {
-        if self.snake.dest_x < 0 || self.snake.dest_x > self.width 
-            || self.snake.dest_y < 0 || self.snake.dest_y > self.height 
+        if self.snake.dest.x < 0 || self.snake.dest.x > self.width 
+            || self.snake.dest.y < 0 || self.snake.dest.y > self.height 
             || self.snake.eat_himself()
         {
             eprintln!("GAME OVER");
@@ -117,11 +117,11 @@ impl EventHandler for Game
         }
     }
 
-    fn update(&mut self, ctx: &mut Context) 
+    fn update(&mut self, _ctx: &mut Context) 
     { 
         if self.running
         {
-            self.real_game_update(ctx);
+            self.real_game_update();
         }
     }
 
@@ -129,11 +129,11 @@ impl EventHandler for Game
     {
         ctx.begin_default_pass(Default::default());
 
-        self.bg.draw(ctx);
+        self.bg.draw();
 
         //SnakeDraw
-        self.snake.draw(ctx);
-        self.bonus.draw(ctx);
+        self.snake.draw();
+        self.bonus.draw();
 
         ctx.end_render_pass();
 
