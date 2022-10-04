@@ -1,4 +1,4 @@
-use miniquad::{Context, Pipeline, Bindings, VertexAttribute, VertexFormat, Buffer, BufferType, Texture, BufferLayout, Shader};
+use miniquad::{Context, Pipeline, Bindings, VertexAttribute, VertexFormat, Buffer, BufferType, Texture, BufferLayout, Shader, BlendState, Equation, BlendValue, BlendFactor};
 
 use crate::{shader::shader::{Vec2, Vertex, VERTEX, FRAGMENT, meta, Uniforms}, images::snake_body::SNAKE_BODY_RGB};
 pub struct SnakeBody{ 
@@ -50,7 +50,7 @@ impl SnakeBody {
 fn init_bonus_pipeline(ctx: &mut Context)  -> Pipeline{
     let shader = Shader::new(ctx, VERTEX, FRAGMENT, meta()).unwrap();
 
-    Pipeline::new(
+    let p = Pipeline::new(
         ctx,
         &[BufferLayout::default()],
         &[
@@ -58,7 +58,12 @@ fn init_bonus_pipeline(ctx: &mut Context)  -> Pipeline{
             VertexAttribute::new("uv", VertexFormat::Float2),
         ],
         shader,
-    )
+    );
+    
+    p.set_blend(ctx, Some(BlendState::new(Equation::Add,
+        BlendFactor::Value(BlendValue::SourceAlpha),
+        BlendFactor::OneMinusValue(BlendValue::SourceAlpha))),);
+    p
 }
 
 fn init_bonus_bindings(ctx: &mut Context)  -> Bindings {   

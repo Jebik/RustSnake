@@ -1,5 +1,5 @@
 use std::time::{SystemTime, Duration};
-use miniquad::{Context, Bindings, Buffer, BufferType, Texture, Shader, Pipeline, BufferLayout, VertexAttribute, VertexFormat};
+use miniquad::{Context, Bindings, Buffer, BufferType, Texture, Shader, Pipeline, BufferLayout, VertexAttribute, VertexFormat, Equation, BlendFactor, BlendValue, BlendState};
 use crate::{shader::shader::{Vertex, Vec2, self}, images::snake_head::SNAKE_HEAD_RGB};
 use super::snake_body::SnakeBody;
 
@@ -260,7 +260,7 @@ impl Snake {
 fn init_head_pipeline(ctx: &mut Context)  -> Pipeline{
     let shader = Shader::new(ctx, shader::VERTEX, shader::FRAGMENT, shader::meta()).unwrap();
 
-    Pipeline::new(
+    let p = Pipeline::new(
         ctx,
         &[BufferLayout::default()],
         &[
@@ -268,7 +268,11 @@ fn init_head_pipeline(ctx: &mut Context)  -> Pipeline{
             VertexAttribute::new("uv", VertexFormat::Float2),
         ],
         shader,
-    )
+    );
+    p.set_blend(ctx, Some(BlendState::new(Equation::Add,
+            BlendFactor::Value(BlendValue::SourceAlpha),
+            BlendFactor::OneMinusValue(BlendValue::SourceAlpha))),);
+    p
 }
 
 fn init_head_bindings(ctx: &mut Context, dir: Dir)  -> Bindings {   

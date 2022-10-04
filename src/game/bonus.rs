@@ -1,4 +1,4 @@
-use miniquad::{Pipeline, Bindings, Context, Shader, BufferLayout, VertexFormat, VertexAttribute, Buffer, BufferType, Texture};
+use miniquad::{Pipeline, Bindings, Context, Shader, BufferLayout, VertexFormat, VertexAttribute, Buffer, BufferType, Texture, BlendState, Equation, BlendFactor, BlendValue};
 
 use crate::{images::snake_bonus::SNAKE_BONUS_RGB};
 use crate::shader::{shader::{Vertex, Vec2, Uniforms, VERTEX, FRAGMENT, meta}};
@@ -36,7 +36,7 @@ impl Bonus {
 fn init_bonus_pipeline(ctx: &mut Context)  -> Pipeline{
     let shader = Shader::new(ctx, VERTEX, FRAGMENT, meta()).unwrap();
 
-    Pipeline::new(
+    let p = Pipeline::new(
         ctx,
         &[BufferLayout::default()],
         &[
@@ -44,7 +44,12 @@ fn init_bonus_pipeline(ctx: &mut Context)  -> Pipeline{
             VertexAttribute::new("uv", VertexFormat::Float2),
         ],
         shader,
-    )
+    );
+    
+    p.set_blend(ctx, Some(BlendState::new(Equation::Add,
+        BlendFactor::Value(BlendValue::SourceAlpha),
+        BlendFactor::OneMinusValue(BlendValue::SourceAlpha))),);
+    p
 }
 
 fn init_bonus_bindings(ctx: &mut Context)  -> Bindings {   
