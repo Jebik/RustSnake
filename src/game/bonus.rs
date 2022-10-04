@@ -1,7 +1,8 @@
 use miniquad::Context;
 use crate::images::{SNAKE_BONUS};
 use crate::pos::Pos;
-use crate::graphical_object::{GraphicalObject, self};
+use crate::graphical_object::GraphicalObject;
+
 pub(crate) struct Bonus
 {
     pub pos: Pos,

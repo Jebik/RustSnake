@@ -17,30 +17,4 @@ pub mod shader {
     void main() {
         gl_FragColor = texture2D(tex, texcoord);
     }"#;
-
-    pub fn meta() -> ShaderMeta {
-        ShaderMeta {
-            images: vec!["tex".to_string()],
-            uniforms: UniformBlockLayout {
-                uniforms: vec![UniformDesc::new("offset", UniformType::Float2)],
-            },
-        }
-    }
-
-    #[repr(C)]
-    pub struct Uniforms 
-    {
-        pub offset: (f32, f32),
-    }
-
-    #[repr(C)]
-    pub struct Vec2 {
-        pub(crate) x: f32,
-        pub(crate) y: f32,
-    }
-    #[repr(C)]
-    pub struct Vertex {
-        pub(crate) pos: Vec2,
-        pub(crate) uv: Vec2,
-    }
 }

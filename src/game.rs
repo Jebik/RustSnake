@@ -111,6 +111,7 @@ impl EventHandler for Game
                 KeyCode::Left => self.snake.try_add(Dir::LEFT),
                 KeyCode::Down => self.snake.try_add(Dir::DOWN),
                 KeyCode::Right => self.snake.try_add(Dir::RIGHT),
+                KeyCode::P => self.running = false,
                 KeyCode::Escape => ctx.quit(), 
                 _ => ()             
             }   

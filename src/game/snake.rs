@@ -2,7 +2,7 @@ use std::time::{SystemTime, Duration};
 
 use miniquad::{Context};
 
-use crate::{images::{SNAKE_HEAD, SNAKE_BODY}, pos::{Pos, FloatPos}, graphical_object::{GraphicalObject, ROTATION, self}};
+use crate::{images::{SNAKE_HEAD, SNAKE_BODY}, pos::{Pos, FloatPos}, graphical_object::{GraphicalObject, ROTATION}};
 use super::snake_body::SnakeBody;
 
 #[derive(PartialEq, Clone, Copy)]

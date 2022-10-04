@@ -1,19 +1,13 @@
-use crate::shader::shader::{meta, Uniforms, Vec2, Vertex, FRAGMENT, VERTEX};
+use crate::shader::shader::{FRAGMENT, VERTEX};
 use miniquad::{
     Bindings, Buffer, BufferLayout, BufferType, Context, Pipeline, Shader, Texture,
-    VertexAttribute, VertexFormat, TextureParams,
+    VertexAttribute, VertexFormat, TextureParams, ShaderMeta, UniformBlockLayout, UniformDesc, UniformType,
 };
 use webp::Decoder;
 
 const SCREEN_WIDTH: f32 = 1600.;
 const SCREEN_HEIGHT: f32 = 896.;
 
-pub struct TextureData
-{
-    width:u16,
-    height:u16,
-    data: &'static [u8]
-}
 pub enum ROTATION
 {
     NONE,
@@ -106,8 +100,12 @@ fn init_bindings(ctx: &mut Context, data: &[u8], width: u16, height: u16) -> Bin
 }
 
 fn init_pipeline(ctx: &mut Context) -> Pipeline {
-    let shader = Shader::new(ctx, VERTEX, FRAGMENT, meta()).unwrap();
+    //let shader = Shader::new(ctx, VERTEX, FRAGMENT, meta()).unwrap();
     
+    let vertex_shader:&str = std::str::from_utf8(include_bytes!("./shaders/shader.vs")).unwrap();
+    let fragment_shader:&str = std::str::from_utf8(include_bytes!("./shaders/shader.fs")).unwrap();
+
+    let shader = Shader::new(ctx, vertex_shader, fragment_shader, meta()).unwrap();
     //let shader = Shader::new("shaders/shader.vs", "shaders/shader.fs", None);
 
     Pipeline::new(
@@ -158,5 +156,33 @@ fn get_rot_vertex(rotation: ROTATION, width: f32, height: f32) -> [Vertex; 4] {
                 Vertex { pos : Vec2 { x: -width/SCREEN_WIDTH, y:  height/SCREEN_HEIGHT }, uv: Vec2 { x: 0., y: 0. } },
             ]
         }
+    }
+}
+
+
+
+#[repr(C)]
+pub struct Uniforms 
+{
+    pub offset: (f32, f32),
+}
+
+#[repr(C)]
+pub struct Vec2 {
+    pub(crate) x: f32,
+    pub(crate) y: f32,
+}
+#[repr(C)]
+pub struct Vertex {
+    pub(crate) pos: Vec2,
+    pub(crate) uv: Vec2,
+}
+
+pub fn meta() -> ShaderMeta {
+    ShaderMeta {
+        images: vec!["tex".to_string()],
+        uniforms: UniformBlockLayout {
+            uniforms: vec![UniformDesc::new("offset", UniformType::Float2)],
+        },
     }
 }
