@@ -16,6 +16,23 @@ pub fn samu_icon() -> Icon {
     }
 }
 
+//CREATE LOGICAL OBJECT
+//CUR POS
+//PREV POS
+//CREATE Struct POS
+//X et Y
+
+//CREATE GRAPHICAL OBJECT
+//INTERNAL PIPELINE
+//INTERNAL BINDING
+//INTERNAL ROTATION
+//PUB DRAW(X, Y)
+
+//Create My miniquad
+//REMOVE ALL NON WINDOWS
+//REMOVE ALL UNUSED
+//SIMPLIFIE A LOT
+
 fn main() {
     miniquad::start(
         Conf {

@@ -9,7 +9,8 @@ pub enum Dir
     LEFT,
     RIGHT,
     UP,
-    DOWN
+    DOWN,
+    NONE
 }
 /*
 25x14 BOARD
@@ -26,7 +27,7 @@ pub struct Snake
     pub dest_y:i16,
     //rest
     pub dir: Dir,
-    next_dir: Vec<Dir>,
+    next_dir: Dir,
     body_part:Vec<SnakeBody>,
     last_move_start: SystemTime,
     pipeline: Pipeline,
@@ -37,7 +38,7 @@ impl Snake {
     {
         Snake
         {
-            next_dir: Vec::new(),
+            next_dir: Dir::NONE,
             body_part: Vec::new(),
             real_x: 12.,
             real_y: 7.,
@@ -55,7 +56,7 @@ impl Snake {
 
     pub(crate) fn reset(&mut self) -> () {
         self.body_part = Vec::new();
-        self.next_dir = Vec::new();
+        self.next_dir = Dir::NONE;
         self.real_x = 12.;
         self.real_y = 7.;
         self.curr_x = 12;
@@ -107,42 +108,41 @@ impl Snake {
     }
 
     pub(crate) fn try_add(&mut self, dir: Dir) {
-        if self.next_dir.len() > 1
+        if self.next_dir != Dir::NONE
         {
             return;
         }
         
-        let last_dir = self.dir;
-
-        match last_dir {
+        match self.dir {
             Dir::LEFT => 
             {   
                 if dir == Dir::UP || dir == Dir::DOWN
                 {
-                    self.next_dir.push(dir);
+                    self.next_dir = dir;
                 }
             },
             Dir::RIGHT => 
             {
                 if dir == Dir::UP || dir == Dir::DOWN
                 {
-                    self.next_dir.push(dir);
+                    self.next_dir = dir;
                 }                
             },
             Dir::UP => 
             {
                 if dir == Dir::LEFT || dir == Dir::RIGHT
                 {
-                    self.next_dir.push(dir);
+                    self.next_dir = dir;
                 }                
             },
             Dir::DOWN => 
             {
                 if dir == Dir::LEFT || dir == Dir::RIGHT
                 {
-                    self.next_dir.push(dir);
+                    self.next_dir = dir;
                 }                
             }
+            Dir::NONE => todo!(),
         }
         
     }
@@ -191,7 +191,7 @@ impl Snake {
 
     fn compute_target(&mut self) {
         
-        let new_dir = self.next_dir.pop().unwrap_or(self.dir);
+        let new_dir = if self.next_dir != Dir::NONE {self.next_dir} else {self.dir};
 
         let last_x = self.curr_x;
         let last_y = self.curr_y;
@@ -218,6 +218,7 @@ impl Snake {
                 self.dir = Dir::DOWN;
                 self.dest_y = self.curr_y - 1;        
             }
+            Dir::NONE => todo!(),
         }
 
         //BODY TARGET
@@ -331,5 +332,6 @@ fn get_dir_vertex(dir: &Dir) -> [Vertex; 4] {
                 Vertex { pos : Vec2 { x: -32./800., y:  32./448.  }, uv: Vec2 { x: 0., y: 0. } },
             ]
         }
+        Dir::NONE => todo!(),
     }
 }
