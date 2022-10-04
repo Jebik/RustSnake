@@ -1,4 +1,3 @@
-use crate::shader::shader::{FRAGMENT, VERTEX};
 use miniquad::{
     Bindings, Buffer, BufferLayout, BufferType, Context, Pipeline, Shader, Texture,
     VertexAttribute, VertexFormat, TextureParams, ShaderMeta, UniformBlockLayout, UniformDesc, UniformType,
@@ -99,14 +98,10 @@ fn init_bindings(ctx: &mut Context, data: &[u8], width: u16, height: u16) -> Bin
     }
 }
 
-fn init_pipeline(ctx: &mut Context) -> Pipeline {
-    //let shader = Shader::new(ctx, VERTEX, FRAGMENT, meta()).unwrap();
-    
+fn init_pipeline(ctx: &mut Context) -> Pipeline {    
     let vertex_shader:&str = std::str::from_utf8(include_bytes!("./shaders/shader.vs")).unwrap();
     let fragment_shader:&str = std::str::from_utf8(include_bytes!("./shaders/shader.fs")).unwrap();
-
     let shader = Shader::new(ctx, vertex_shader, fragment_shader, meta()).unwrap();
-    //let shader = Shader::new("shaders/shader.vs", "shaders/shader.fs", None);
 
     Pipeline::new(
         ctx,

@@ -1,7 +1,6 @@
 use miniquad::conf::Conf;
 mod graphical_object;
 mod pos;
-mod shader;
 mod images;
 mod game;
 
