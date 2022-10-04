@@ -1,7 +1,8 @@
 use std::time::{SystemTime, Duration};
 
-use miniquad::Context;
-use crate::{pos::{Pos, FloatPos}, graphical_object::{GraphicalObject, ROTATION}};
+use miniquad::{Context};
+
+use crate::{images::{SNAKE_HEAD, SNAKE_BODY}, pos::{Pos, FloatPos}, graphical_object::{GraphicalObject, ROTATION, self}};
 use super::snake_body::SnakeBody;
 
 #[derive(PartialEq, Clone, Copy)]
@@ -33,11 +34,6 @@ pub struct Snake
 impl Snake {
     pub(crate) fn new(ctx: &mut Context) -> Snake 
     {
-        //LOADING IMAGE;
-        let width = 1600;
-        let height = 896;
-        let texture = [0u8; 0];
-
         Snake
         {
             next_dir: Dir::NONE,
@@ -48,9 +44,10 @@ impl Snake {
             dest:Pos { x: 13, y: 7 },
             dir: Dir::RIGHT,            
             last_move_start:SystemTime::now(),
+            
             //ForDrawing
-            body: GraphicalObject::new(ctx, &texture, width, height),
-            head: GraphicalObject::new(ctx, &texture, width, height)
+            body: GraphicalObject::new(ctx, SNAKE_HEAD),
+            head: GraphicalObject::new(ctx, SNAKE_BODY)
         }
     }
 

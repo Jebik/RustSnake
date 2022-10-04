@@ -1,12 +1,19 @@
 use crate::shader::shader::{meta, Uniforms, Vec2, Vertex, FRAGMENT, VERTEX};
 use miniquad::{
     Bindings, Buffer, BufferLayout, BufferType, Context, Pipeline, Shader, Texture,
-    VertexAttribute, VertexFormat,
+    VertexAttribute, VertexFormat, TextureParams,
 };
+use webp::Decoder;
 
 const SCREEN_WIDTH: f32 = 1600.;
 const SCREEN_HEIGHT: f32 = 896.;
 
+pub struct TextureData
+{
+    width:u16,
+    height:u16,
+    data: &'static [u8]
+}
 pub enum ROTATION
 {
     NONE,
@@ -43,7 +50,18 @@ impl GraphicalObject {
         ctx.draw(0, 6, 1);
     }
 
-    pub(crate) fn new(ctx: &mut Context, texture: &[u8], width: i16, height: i16) -> GraphicalObject {
+    pub(crate) fn new(ctx: &mut Context, file: &[u8]) -> GraphicalObject 
+    { 
+        let file = Decoder::new(file);
+        let res = file.decode().unwrap();
+        
+        //LOADING IMAGE;
+        let width:u16 = res.width() as _;
+        let height:u16 = res.height() as _;
+        let img = res.to_image();
+        let texture = img.to_rgb8();
+        let data = &texture as &[u8];
+
         let widhtf = f32::from(width);
         let heightf = f32::from(height);
 
@@ -55,22 +73,31 @@ impl GraphicalObject {
             height: heightf,
             x_offset,
             y_offset,
-            bindings: init_bindings(ctx, texture, widhtf, heightf),
+            bindings: init_bindings(ctx, data, width, height),
             pipeline: init_pipeline(ctx)
         }
     }       
 }
 
-
-fn init_bindings(ctx: &mut Context, texture: &[u8], width: f32, height: f32) -> Bindings {
-    let square_vertices: [Vertex; 4] = get_rot_vertex(ROTATION::NONE, width, height);
+fn init_bindings(ctx: &mut Context, data: &[u8], width: u16, height: u16) -> Bindings {
+    let widthf = f32::from(width);
+    let heightf = f32::from(height);
+    let square_vertices: [Vertex; 4] = get_rot_vertex(ROTATION::NONE, widthf, heightf);
     let vertex_buffer = Buffer::immutable(ctx, BufferType::VertexBuffer, &square_vertices);
 
     let indices: [u16; 6] = [0, 1, 2, 0, 2, 3];
     let index_buffer = Buffer::immutable(ctx, BufferType::IndexBuffer, &indices);
 
-    let texture = Texture::from_rgba8(ctx, 64, 64, texture);
-
+    let param = TextureParams
+    {
+        format: miniquad::TextureFormat::RGB8,
+        wrap: miniquad::TextureWrap::Clamp,
+        filter: miniquad::FilterMode::Linear,
+        width: width as _,
+        height: height as _,
+    };
+    let texture = Texture::from_data_and_format(ctx, data, param);
+    
     Bindings {
         vertex_buffers: vec![vertex_buffer],
         index_buffer: index_buffer,
@@ -80,6 +107,8 @@ fn init_bindings(ctx: &mut Context, texture: &[u8], width: f32, height: f32) -> 
 
 fn init_pipeline(ctx: &mut Context) -> Pipeline {
     let shader = Shader::new(ctx, VERTEX, FRAGMENT, meta()).unwrap();
+    
+    //let shader = Shader::new("shaders/shader.vs", "shaders/shader.fs", None);
 
     Pipeline::new(
         ctx,

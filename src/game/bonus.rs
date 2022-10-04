@@ -1,6 +1,7 @@
 use miniquad::Context;
+use crate::images::{SNAKE_BONUS};
 use crate::pos::Pos;
-use crate::graphical_object::GraphicalObject;
+use crate::graphical_object::{GraphicalObject, self};
 pub(crate) struct Bonus
 {
     pub pos: Pos,
@@ -9,15 +10,10 @@ pub(crate) struct Bonus
 impl Bonus {    
     pub(crate) fn new(ctx: &mut Context) -> Bonus 
     {
-        //LOADING IMAGE;
-        let width = 1600;
-        let height = 896;
-        let texture = [0u8; 0];
-
         Bonus 
         {
             pos: Pos { x: 0, y: 0 },
-            graphic: GraphicalObject::new(ctx, &texture, width, height) 
+            graphic: GraphicalObject::new(ctx, SNAKE_BONUS) 
         }
     }
     

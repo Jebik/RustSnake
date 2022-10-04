@@ -1,5 +1,5 @@
 use miniquad::Context;
-use crate::graphical_object::GraphicalObject;
+use crate::{graphical_object::{GraphicalObject}, images::SNAKE_BG};
 pub(crate) struct Background
 {
     graphic: GraphicalObject
@@ -7,14 +7,9 @@ pub(crate) struct Background
 impl Background {    
     pub(crate) fn new(ctx: &mut Context) -> Background 
     {
-        //LOADING IMAGE;
-        let width = 1600;
-        let height = 896;
-        let texture = [0u8; 0];
-
         Background 
         {
-            graphic: GraphicalObject::new(ctx, &texture, width, height) 
+            graphic: GraphicalObject::new(ctx, SNAKE_BG) 
         }
     }
     
