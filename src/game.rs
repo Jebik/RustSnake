@@ -1,12 +1,11 @@
-use miniquad::{EventHandler, Context, KeyCode, KeyMods, Bindings, Shader, Pipeline, BufferLayout, VertexAttribute, VertexFormat, Buffer, BufferType, Texture};
+use miniquad::{EventHandler, Context, KeyCode, KeyMods};
 use rand::Rng;
 
 mod bonus;
 mod snake;
+mod background;
 mod snake_body;
-use crate::{shader::{*, shader::*}, images::snake_body::SNAKE_BODY_RGB}; //images::snake_bg::SNAKE_BG_RGB};
-use self::{snake::{Snake, Dir}, bonus::Bonus};
-
+use self::{snake::{Snake, Dir}, bonus::Bonus, background::Background};
 
 /* 
 GAME INFO
@@ -18,12 +17,11 @@ pub(crate) struct Game
 {
     snake:Snake,
     bonus:Bonus,
+    bg: Background,
     score:i32,
     running:bool,
     width:i16,
     height:i16,
-    pipeline: Pipeline,
-    bindings: Bindings
 }
 impl Game
 {
@@ -33,10 +31,9 @@ impl Game
         {
             snake: Snake::new(ctx),
             bonus: Bonus::new(ctx),
+            bg: Background::new(ctx),
             width: 25,
             height:14,
-            pipeline: init_bg_pipeline(ctx),
-            bindings: init_bg_bindings(ctx),
             score: 0,
             running: false
         };
@@ -91,45 +88,6 @@ impl Game
     }
 }
 
-
-//OPENGL WEIRD
-fn init_bg_pipeline(ctx: &mut Context)  -> Pipeline{
-    let shader = Shader::new(ctx, shader::VERTEX, shader::FRAGMENT, shader::meta()).unwrap();
-
-    Pipeline::new(
-        ctx,
-        &[BufferLayout::default()],
-        &[
-            VertexAttribute::new("pos", VertexFormat::Float2),
-            VertexAttribute::new("uv", VertexFormat::Float2),
-        ],
-        shader,
-    )
-}
-
-fn init_bg_bindings(ctx: &mut Context)  -> Bindings {    
-    let bg_vertices: [Vertex; 4] = [
-        Vertex { pos : Vec2 { x: -1., y: -1. }, uv: Vec2 { x: 0., y: 0. } },
-        Vertex { pos : Vec2 { x:  1., y: -1. }, uv: Vec2 { x: 1., y: 0. } },
-        Vertex { pos : Vec2 { x:  1., y:  1. }, uv: Vec2 { x: 1., y: 1. } },
-        Vertex { pos : Vec2 { x: -1., y:  1. }, uv: Vec2 { x: 0., y: 1. } },
-    ];
-
-    let vertex_buffer = Buffer::immutable(ctx, BufferType::VertexBuffer, &bg_vertices);
-    
-    let indices: [u16; 6] = [0, 1, 2, 0, 2, 3];
-    let index_buffer = Buffer::immutable(ctx, BufferType::IndexBuffer, &indices);
-
-    let texture = Texture::from_rgba8(ctx, 64, 64, &SNAKE_BODY_RGB);
-    //let texture = Texture::from_rgba8(ctx, 1600, 896, &SNAKE_BG_RGB);
-
-    Bindings {
-        vertex_buffers: vec![vertex_buffer],
-        index_buffer: index_buffer,
-        images: vec![texture],
-    }
-}
-
 impl EventHandler for Game 
 {
     fn key_up_event(&mut self, _ctx: &mut Context, _keycode: KeyCode, _keymods: KeyMods) 
@@ -163,17 +121,9 @@ impl EventHandler for Game
 
     fn draw(&mut self, ctx: &mut Context) 
     {
-        /*let t = date::now();
-        eprintln!("{:#?}", t);*/
         ctx.begin_default_pass(Default::default());
 
-        ctx.apply_pipeline(&self.pipeline);
-        ctx.apply_bindings(&self.bindings);
-        ctx.apply_uniforms(&shader::Uniforms {
-            offset: (0.,0.),
-        });       
-        ctx.draw(0, 6, 1);
-
+        self.bg.draw(ctx);
 
         //SnakeDraw
         self.snake.draw(ctx);
