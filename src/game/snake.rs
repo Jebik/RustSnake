@@ -175,6 +175,7 @@ impl Snake {
     fn compute_target(&mut self) {
         
         let new_dir = if self.next_dir != Dir::NONE {self.next_dir} else {self.dir};
+        self.next_dir = Dir::NONE;
 
         let last_x = self.curr.x;
         let last_y = self.curr.y;
