@@ -9,7 +9,7 @@ const SCREEN_HEIGHT: f32 = 896.;
 
 pub enum ROTATION
 {
-    NONE,
+    None,
     Clockwise90,
     Clockwise180,
     Clockwise270
@@ -75,7 +75,7 @@ impl GraphicalObject {
 fn init_bindings(ctx: &mut Context, data: &[u8], width: u16, height: u16) -> Bindings {
     let widthf = f32::from(width);
     let heightf = f32::from(height);
-    let square_vertices: [Vertex; 4] = get_rot_vertex(ROTATION::NONE, widthf, heightf);
+    let square_vertices: [Vertex; 4] = get_rot_vertex(ROTATION::None, widthf, heightf);
     let vertex_buffer = Buffer::immutable(ctx, BufferType::VertexBuffer, &square_vertices);
 
     let indices: [u16; 6] = [0, 1, 2, 0, 2, 3];
@@ -93,7 +93,7 @@ fn init_bindings(ctx: &mut Context, data: &[u8], width: u16, height: u16) -> Bin
     
     Bindings {
         vertex_buffers: vec![vertex_buffer],
-        index_buffer: index_buffer,
+        index_buffer,
         images: vec![texture],
     }
 }
@@ -115,7 +115,7 @@ fn init_pipeline(ctx: &mut Context) -> Pipeline {
 
 fn get_rot_vertex(rotation: ROTATION, width: f32, height: f32) -> [Vertex; 4] {
     match rotation {
-        ROTATION::NONE =>
+        ROTATION::None =>
         {
             [
                 Vertex { pos : Vec2 { x: -width/SCREEN_WIDTH, y: -height/SCREEN_HEIGHT }, uv: Vec2 { x: 0., y: 1. } },
@@ -159,7 +159,7 @@ fn get_rot_vertex(rotation: ROTATION, width: f32, height: f32) -> [Vertex; 4] {
 #[repr(C)]
 pub struct Uniforms 
 {
-    pub offset: (f32, f32),
+    pub offset: (f32, f32)
 }
 
 #[repr(C)]

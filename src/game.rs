@@ -44,14 +44,14 @@ impl Game
         g
     }
 
-    fn init(&mut self) -> () {
+    fn init(&mut self) {
         self.snake.reset();
         self.score = 0;
         self.running = false;
         self.spawn_bonus();
     }
 
-    fn spawn_bonus(&mut self) -> () {
+    fn spawn_bonus(&mut self){
         let mut rng = rand::thread_rng();
         let x:i16 = rng.gen_range(0..self.width);
         let y:i16 = rng.gen_range(0..self.height);
@@ -124,10 +124,10 @@ impl EventHandler for Game
         else
         {
             match _keycode {
-                KeyCode::Up => self.snake.try_add(Dir::UP),
-                KeyCode::Left => self.snake.try_add(Dir::LEFT),
-                KeyCode::Down => self.snake.try_add(Dir::DOWN),
-                KeyCode::Right => self.snake.try_add(Dir::RIGHT),
+                KeyCode::Up => self.snake.try_add(Dir::Up),
+                KeyCode::Left => self.snake.try_add(Dir::Left),
+                KeyCode::Down => self.snake.try_add(Dir::Down),
+                KeyCode::Right => self.snake.try_add(Dir::Right),
                 KeyCode::P => self.running = false,
                 KeyCode::Escape => ctx.quit(), 
                 _ => ()             

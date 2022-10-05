@@ -5,14 +5,14 @@ use miniquad::{Context};
 use crate::{images::{SNAKE_HEAD, SNAKE_BODY}, pos::{Pos, FloatPos}, graphical_object::{GraphicalObject, ROTATION}};
 use super::snake_body::SnakeBody;
 
-#[derive(PartialEq, Clone, Copy)]
-pub enum Dir
+#[derive(PartialEq, Eq, Clone, Copy)]
+pub enum Dir 
 {
-    LEFT,
-    RIGHT,
-    UP,
-    DOWN,
-    NONE
+    Left,
+    Right,
+    Up,
+    Down,
+    None
 }
 
 pub struct Snake
@@ -36,13 +36,13 @@ impl Snake {
     {
         Snake
         {
-            next_dir: Dir::NONE,
+            next_dir: Dir::None,
             body_part: Vec::new(),
             
             real:FloatPos { x: 12., y: 7. },
             curr:Pos { x: 12, y: 7 },
             dest:Pos { x: 13, y: 7 },
-            dir: Dir::RIGHT,            
+            dir: Dir::Right,            
             last_move_start:SystemTime::now(),
             
             //ForDrawing
@@ -51,20 +51,20 @@ impl Snake {
         }
     }
 
-    pub(crate) fn reset(&mut self) -> () {
+    pub(crate) fn reset(&mut self) {
         self.body_part = Vec::new();
-        self.next_dir = Dir::NONE;
+        self.next_dir = Dir::None;
         self.real.x = 12.;
         self.real.y = 7.;
         self.curr.x = 12;
         self.curr.y = 7;
         self.dest.x = 13;
         self.dest.y = 7;
-        self.dir = Dir::RIGHT;
+        self.dir = Dir::Right;
     }    
 
 
-    pub fn start(&mut self) -> () {
+    pub fn start(&mut self) {
         self. last_move_start = SystemTime::now();
     }
 
@@ -87,15 +87,15 @@ impl Snake {
         else
         {
             let ratio = move_duration.as_secs_f32() / move_ratio.as_secs_f32();
-            self.real.x = f32::from(&self.dest.x-&self.curr.x)*ratio + f32::from(self.curr.x);
-            self.real.y = f32::from(&self.dest.y-&self.curr.y)*ratio + f32::from(self.curr.y);
+            self.real.x = f32::from(self.dest.x-self.curr.x)*ratio + f32::from(self.curr.x);
+            self.real.y = f32::from(self.dest.y-self.curr.y)*ratio + f32::from(self.curr.y);
             
             for b in self.body_part.iter_mut()
             {
                 if b.dest.x != -1 && b.dest.y != -1
                 {
-                    b.real.x = f32::from(&b.dest.x-&b.curr.x)*ratio + f32::from(b.curr.x);
-                    b.real.y = f32::from(&b.dest.y-&b.curr.y)*ratio + f32::from(b.curr.y);
+                    b.real.x = f32::from(b.dest.x-b.curr.x)*ratio + f32::from(b.curr.x);
+                    b.real.y = f32::from(b.dest.y-b.curr.y)*ratio + f32::from(b.curr.y);
                 }
             }
         }
@@ -105,41 +105,41 @@ impl Snake {
     }
 
     pub(crate) fn try_add(&mut self, dir: Dir) {
-        if self.next_dir != Dir::NONE
+        if self.next_dir != Dir::None
         {
             return;
         }
         
         match self.dir {
-            Dir::LEFT => 
+            Dir::Left => 
             {   
-                if dir == Dir::UP || dir == Dir::DOWN
+                if dir == Dir::Up || dir == Dir::Down
                 {
                     self.next_dir = dir;
                 }
             },
-            Dir::RIGHT => 
+            Dir::Right => 
             {
-                if dir == Dir::UP || dir == Dir::DOWN
+                if dir == Dir::Up || dir == Dir::Down
                 {
                     self.next_dir = dir;
                 }                
             },
-            Dir::UP => 
+            Dir::Up => 
             {
-                if dir == Dir::LEFT || dir == Dir::RIGHT
+                if dir == Dir::Left || dir == Dir::Right
                 {
                     self.next_dir = dir;
                 }                
             },
-            Dir::DOWN => 
+            Dir::Down => 
             {
-                if dir == Dir::LEFT || dir == Dir::RIGHT
+                if dir == Dir::Left || dir == Dir::Right
                 {
                     self.next_dir = dir;
                 }                
             }
-            Dir::NONE => todo!(),
+            Dir::None => todo!(),
         }
         
     }
@@ -147,20 +147,12 @@ impl Snake {
     
     pub fn grow(&mut self) 
     {
-        let mut x = self.curr.x;
-        let mut y = self.curr.y;
-
-        let last_body = self.body_part.last();
-        if last_body.is_some()
-        {
-            let body = last_body.unwrap();
-            x = body.curr.x;
-            y = body.curr.y;
-        }
+        let curr = self.body_part.last().map_or(&self.curr, |last| &last.curr);
+        let x = curr.x;
+        let y = curr.y;
 
         self.body_part.push(SnakeBody::new(x, y))
     }
-
     
     pub fn draw(&mut self, ctx: &mut Context) {
         self.head.rotate(ctx, get_rotation(self.dir));
@@ -174,35 +166,35 @@ impl Snake {
 
     fn compute_target(&mut self) {
         
-        let new_dir = if self.next_dir != Dir::NONE {self.next_dir} else {self.dir};
-        self.next_dir = Dir::NONE;
+        let new_dir = if self.next_dir != Dir::None {self.next_dir} else {self.dir};
+        self.next_dir = Dir::None;
 
         let last_x = self.curr.x;
         let last_y = self.curr.y;
         self.curr.x = self.dest.x;
         self.curr.y = self.dest.y;
         match new_dir {
-            Dir::LEFT => 
+            Dir::Left => 
             {   
-                self.dir = Dir::LEFT;
+                self.dir = Dir::Left;
                 self.dest.x = self.curr.x - 1;
             },
-            Dir::RIGHT => 
+            Dir::Right => 
             {
-                self.dir = Dir::RIGHT;
+                self.dir = Dir::Right;
                 self.dest.x = self.curr.x + 1;      
             },
-            Dir::UP => 
+            Dir::Up => 
             {
-                self.dir = Dir::UP;
+                self.dir = Dir::Up;
                 self.dest.y = self.curr.y + 1;           
             },
-            Dir::DOWN => 
+            Dir::Down => 
             {
-                self.dir = Dir::DOWN;
+                self.dir = Dir::Down;
                 self.dest.y = self.curr.y - 1;        
             }
-            Dir::NONE => todo!(),
+            Dir::None => todo!(),
         }
 
         //BODY TARGET
@@ -243,10 +235,10 @@ impl Snake {
 
 fn get_rotation(dir: Dir) -> ROTATION {
     match dir {
-        Dir::LEFT => ROTATION::Clockwise270,
-        Dir::RIGHT => ROTATION::Clockwise90,
-        Dir::UP => ROTATION::NONE,
-        Dir::DOWN => ROTATION::Clockwise180,
-        Dir::NONE => ROTATION::NONE,
+        Dir::Left => ROTATION::Clockwise270,
+        Dir::Right => ROTATION::Clockwise90,
+        Dir::Up => ROTATION::None,
+        Dir::Down => ROTATION::Clockwise180,
+        Dir::None => ROTATION::None,
     }
 }

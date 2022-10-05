@@ -39,6 +39,6 @@ fn main() {
             fullscreen: false,
             .. Default::default()
         },
-        |mut ctx| Box::new(game::Game::new(&mut ctx)),
+        |ctx| Box::new(game::Game::new(ctx)),
     );
 }
