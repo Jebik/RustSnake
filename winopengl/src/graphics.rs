@@ -46,105 +46,32 @@ pub struct ShaderMeta {
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum VertexFormat {
-    /// One 32-bit wide float (equivalent to `f32`)
-    Float1,
-    /// Two 32-bit wide floats (equivalent to `[f32; 2]`)
     Float2,
-    /// Three 32-bit wide floats (equivalent to `[f32; 3]`)
-    Float3,
-    /// Four 32-bit wide floats (equivalent to `[f32; 4]`)
     Float4,
-    /// One unsigned 8-bit integer (equivalent to `u8`)
-    Byte1,
-    /// Two unsigned 8-bit integers (equivalent to `[u8; 2]`)
-    Byte2,
-    /// Three unsigned 8-bit integers (equivalent to `[u8; 3]`)
-    Byte3,
-    /// Four unsigned 8-bit integers (equivalent to `[u8; 4]`)
-    Byte4,
-    /// One unsigned 16-bit integer (equivalent to `u16`)
-    Short1,
-    /// Two unsigned 16-bit integers (equivalent to `[u16; 2]`)
-    Short2,
-    /// Tree unsigned 16-bit integers (equivalent to `[u16; 3]`)
-    Short3,
-    /// Four unsigned 16-bit integers (equivalent to `[u16; 4]`)
-    Short4,
-    /// One unsigned 32-bit integers (equivalent to `[u32; 1]`)
-    Int1,
-    /// Two unsigned 32-bit integers (equivalent to `[u32; 2]`)
-    Int2,
-    /// Three unsigned 32-bit integers (equivalent to `[u32; 3]`)
-    Int3,
-    /// Four unsigned 32-bit integers (equivalent to `[u32; 4]`)
-    Int4,
-    /// Four by four matrix of 32-bit floats
-    Mat4,
+    Mat4
 }
 
 impl VertexFormat {
     pub fn size(&self) -> i32 {
         match self {
-            VertexFormat::Float1 => 1,
             VertexFormat::Float2 => 2,
-            VertexFormat::Float3 => 3,
             VertexFormat::Float4 => 4,
-            VertexFormat::Byte1 => 1,
-            VertexFormat::Byte2 => 2,
-            VertexFormat::Byte3 => 3,
-            VertexFormat::Byte4 => 4,
-            VertexFormat::Short1 => 1,
-            VertexFormat::Short2 => 2,
-            VertexFormat::Short3 => 3,
-            VertexFormat::Short4 => 4,
-            VertexFormat::Int1 => 1,
-            VertexFormat::Int2 => 2,
-            VertexFormat::Int3 => 3,
-            VertexFormat::Int4 => 4,
             VertexFormat::Mat4 => 16,
         }
     }
 
     pub fn byte_len(&self) -> i32 {
         match self {
-            VertexFormat::Float1 => 1 * 4,
             VertexFormat::Float2 => 2 * 4,
-            VertexFormat::Float3 => 3 * 4,
             VertexFormat::Float4 => 4 * 4,
-            VertexFormat::Byte1 => 1,
-            VertexFormat::Byte2 => 2,
-            VertexFormat::Byte3 => 3,
-            VertexFormat::Byte4 => 4,
-            VertexFormat::Short1 => 1 * 2,
-            VertexFormat::Short2 => 2 * 2,
-            VertexFormat::Short3 => 3 * 2,
-            VertexFormat::Short4 => 4 * 2,
-            VertexFormat::Int1 => 1 * 4,
-            VertexFormat::Int2 => 2 * 4,
-            VertexFormat::Int3 => 3 * 4,
-            VertexFormat::Int4 => 4 * 4,
             VertexFormat::Mat4 => 16 * 4,
         }
     }
 
     fn type_(&self) -> GLuint {
         match self {
-            VertexFormat::Float1 => GL_FLOAT,
             VertexFormat::Float2 => GL_FLOAT,
-            VertexFormat::Float3 => GL_FLOAT,
             VertexFormat::Float4 => GL_FLOAT,
-            VertexFormat::Byte1 => GL_UNSIGNED_BYTE,
-            VertexFormat::Byte2 => GL_UNSIGNED_BYTE,
-            VertexFormat::Byte3 => GL_UNSIGNED_BYTE,
-            VertexFormat::Byte4 => GL_UNSIGNED_BYTE,
-            VertexFormat::Short1 => GL_UNSIGNED_SHORT,
-            VertexFormat::Short2 => GL_UNSIGNED_SHORT,
-            VertexFormat::Short3 => GL_UNSIGNED_SHORT,
-            VertexFormat::Short4 => GL_UNSIGNED_SHORT,
-            VertexFormat::Int1 => GL_UNSIGNED_INT,
-            VertexFormat::Int2 => GL_UNSIGNED_INT,
-            VertexFormat::Int3 => GL_UNSIGNED_INT,
-            VertexFormat::Int4 => GL_UNSIGNED_INT,
             VertexFormat::Mat4 => GL_FLOAT,
         }
     }
@@ -1372,27 +1299,10 @@ fn gl_usage(usage: &Usage) -> GLenum {
 #[derive(Clone, Copy, Debug)]
 pub struct Buffer {
     gl_buf: GLuint,
-    buffer_type: BufferType,
-    size: usize,
     index_type: Option<IndexType>,
 }
 
 impl Buffer {
-    /// Create an immutable buffer resource object.
-    /// ```ignore
-    /// #[repr(C)]
-    /// struct Vertex {
-    ///     pos: Vec2,
-    ///     uv: Vec2,
-    /// }
-    /// let vertices: [Vertex; 4] = [
-    ///     Vertex { pos : Vec2 { x: -0.5, y: -0.5 }, uv: Vec2 { x: 0., y: 0. } },
-    ///     Vertex { pos : Vec2 { x:  0.5, y: -0.5 }, uv: Vec2 { x: 1., y: 0. } },
-    ///     Vertex { pos : Vec2 { x:  0.5, y:  0.5 }, uv: Vec2 { x: 1., y: 1. } },
-    ///     Vertex { pos : Vec2 { x: -0.5, y:  0.5 }, uv: Vec2 { x: 0., y: 1. } },
-    /// ];
-    /// let buffer = Buffer::immutable(ctx, BufferType::VertexBuffer, &vertices);
-    /// ```
     pub fn immutable<T>(ctx: &mut Context, buffer_type: BufferType, data: &[T]) -> Buffer {
         let index_type = if buffer_type == BufferType::IndexBuffer {
             Some(IndexType::for_type::<T>())
@@ -1416,239 +1326,7 @@ impl Buffer {
 
         Buffer {
             gl_buf,
-            buffer_type,
-            size,
             index_type,
         }
-    }
-
-    pub fn stream(ctx: &mut Context, buffer_type: BufferType, size: usize) -> Buffer {
-        let index_type = if buffer_type == BufferType::IndexBuffer {
-            Some(IndexType::Short)
-        } else {
-            None
-        };
-
-        let gl_target = gl_buffer_target(&buffer_type);
-        let gl_usage = gl_usage(&Usage::Stream);
-        let mut gl_buf: u32 = 0;
-
-        unsafe {
-            glGenBuffers(1, &mut gl_buf as *mut _);
-            ctx.cache.store_buffer_binding(gl_target);
-            ctx.cache.bind_buffer(gl_target, gl_buf, None);
-            glBufferData(gl_target, size as _, std::ptr::null() as *const _, gl_usage);
-            ctx.cache.restore_buffer_binding(gl_target);
-        }
-
-        Buffer {
-            gl_buf,
-            buffer_type,
-            size,
-            index_type,
-        }
-    }
-
-    pub fn index_stream(ctx: &mut Context, index_type: IndexType, size: usize) -> Buffer {
-        let gl_target = gl_buffer_target(&BufferType::IndexBuffer);
-        let gl_usage = gl_usage(&Usage::Stream);
-        let mut gl_buf: u32 = 0;
-
-        unsafe {
-            glGenBuffers(1, &mut gl_buf as *mut _);
-            ctx.cache.store_buffer_binding(gl_target);
-            ctx.cache.bind_buffer(gl_target, gl_buf, None);
-            glBufferData(gl_target, size as _, std::ptr::null() as *const _, gl_usage);
-            ctx.cache.restore_buffer_binding(gl_target);
-        }
-
-        Buffer {
-            gl_buf,
-            buffer_type: BufferType::IndexBuffer,
-            size,
-            index_type: Some(index_type),
-        }
-    }
-    pub fn update<T>(&self, ctx: &mut Context, data: &[T]) {
-        if self.buffer_type == BufferType::IndexBuffer {
-            assert!(self.index_type.is_some());
-            assert!(self.index_type.unwrap() == IndexType::for_type::<T>());
-        };
-
-        let size = mem::size_of_val(data);
-
-        assert!(size <= self.size);
-
-        let gl_target = gl_buffer_target(&self.buffer_type);
-        ctx.cache.store_buffer_binding(gl_target);
-        ctx.cache
-            .bind_buffer(gl_target, self.gl_buf, self.index_type);
-        unsafe { glBufferSubData(gl_target, 0, size as _, data.as_ptr() as *const _) };
-        ctx.cache.restore_buffer_binding(gl_target);
-    }
-
-    /// Size of buffer in bytes
-    pub fn size(&self) -> usize {
-        self.size
-    }
-
-    /// Delete GPU buffer, leaving handle unmodified.
-    ///
-    /// More high-level code on top of miniquad probably is going to call this in Drop implementation of some
-    /// more RAII buffer object.
-    ///
-    /// There is no protection against using deleted textures later. However its not an UB in OpenGl and thats why
-    /// this function is not marked as unsafe
-    pub fn delete(&self) {
-        unsafe { glDeleteBuffers(1, &self.gl_buf as *const _) }
-    }
-}
-
-/// `ElapsedQuery` is used to measure duration of GPU operations.
-///
-/// Usual timing/profiling methods are difficult apply to GPU workloads as draw calls are submitted
-/// asynchronously effectively hiding execution time of individual operations from the user.
-/// `ElapsedQuery` allows to measure duration of individual rendering operations, as though the time
-/// was measured on GPU rather than CPU side.
-///
-/// The query is created using [`ElapsedQuery::new()`] function.
-/// ```
-/// use miniquad::graphics::ElapsedQuery;
-/// // initialization
-/// let mut query = ElapsedQuery::new();
-/// ```
-/// Measurement is performed by calling [`ElapsedQuery::begin_query()`] and
-/// [`ElapsedQuery::end_query()`]
-///
-/// ```
-/// # use miniquad::graphics::ElapsedQuery;
-/// # let mut query = ElapsedQuery::new();
-///
-/// query.begin_query();
-/// // one or multiple calls to miniquad::Context::draw()
-/// query.end_query();
-/// ```
-///
-/// Retreival of measured duration is only possible at a later point in time. Often a frame or
-/// couple frames later. Measurement latency can especially be high on WASM/WebGL target.
-///
-/// ```
-/// // couple frames later:
-/// # use miniquad::graphics::ElapsedQuery;
-/// # let mut query = ElapsedQuery::new();
-/// # query.begin_query();
-/// # query.end_query();
-/// if query.is_available() {
-///   let duration_nanoseconds = query.get_result();
-///   // use/display duration_nanoseconds
-/// }
-/// ```
-///
-/// And during finalization:
-/// ```
-/// // clean-up
-/// # use miniquad::graphics::ElapsedQuery;
-/// # let mut query = ElapsedQuery::new();
-/// # query.begin_query();
-/// # query.end_query();
-/// # if query.is_available() {
-/// #   let duration_nanoseconds = query.get_result();
-/// #   // use/display duration_nanoseconds
-/// # }
-/// query.delete();
-/// ```
-///
-/// It is only possible to measure single query at once.
-///
-/// On OpenGL/WebGL platforms implementation relies on [`EXT_disjoint_timer_query`] extension.
-///
-/// [`EXT_disjoint_timer_query`]: https://www.khronos.org/registry/OpenGL/extensions/EXT/EXT_disjoint_timer_query.txt
-///
-#[derive(Clone, Copy)]
-pub struct ElapsedQuery {
-    gl_query: GLuint,
-}
-
-impl ElapsedQuery {
-    pub fn new() -> ElapsedQuery {
-        ElapsedQuery { gl_query: 0 }
-    }
-
-    /// Submit a beginning of elapsed-time query.
-    ///
-    /// Only a single query can be measured at any moment in time.
-    ///
-    /// Use [`ElapsedQuery::end_query()`] to finish the query and
-    /// [`ElapsedQuery::get_result()`] to read the result when rendering is complete.
-    ///
-    /// The query can be used again after retriving the result.
-    ///
-    /// Implemented as `glBeginQuery(GL_TIME_ELAPSED, ...)` on OpenGL/WebGL platforms.
-    ///
-    /// Use [`ElapsedQuery::is_supported()`] to check if functionality is available and the method can be called.
-    pub fn begin_query(&mut self) {
-        if self.gl_query == 0 {
-            unsafe { glGenQueries(1, &mut self.gl_query) };
-        }
-        unsafe { glBeginQuery(GL_TIME_ELAPSED, self.gl_query) };
-    }
-
-    /// Submit an end of elapsed-time query that can be read later when rendering is complete.
-    ///
-    /// This function is usd in conjunction with [`ElapsedQuery::begin_query()`] and
-    /// [`ElapsedQuery::get_result()`].
-    ///
-    /// Implemented as `glEndQuery(GL_TIME_ELAPSED)` on OpenGL/WebGL platforms.
-    pub fn end_query(&mut self) {
-        unsafe { glEndQuery(GL_TIME_ELAPSED) };
-    }
-
-    /// Retreieve measured duration in nanonseconds.
-    ///
-    /// Note that the result may be ready only couple frames later due to asynchronous nature of GPU
-    /// command submission. Use [`ElapsedQuery::is_available()`] to check if the result is
-    /// available for retrieval.
-    ///
-    /// Use [`ElapsedQuery::is_supported()`] to check if functionality is available and the method can be called.
-    pub fn get_result(&self) -> u64 {
-        let mut time: GLuint64 = 0;
-        assert!(self.gl_query != 0);
-        unsafe { glGetQueryObjectui64v(self.gl_query, GL_QUERY_RESULT, &mut time) };
-        time
-    }
-
-    /// Reports whenever elapsed timer is supported and other methods can be invoked.
-    pub fn is_supported() -> bool {
-        unimplemented!();
-        //unsafe { sapp_is_elapsed_timer_supported() }
-    }
-
-    /// Reports whenever result of submitted query is available for retrieval with
-    /// [`ElapsedQuery::get_result()`].
-    ///
-    /// Note that the result may be ready only couple frames later due to asynchrnous nature of GPU
-    /// command submission.
-    ///
-    /// Use [`ElapsedQuery::is_supported()`] to check if functionality is available and the method can be called.
-    pub fn is_available(&self) -> bool {
-        let mut available: GLint = 0;
-
-        // begin_query was not called yet
-        if self.gl_query == 0 {
-            return false;
-        }
-
-        unsafe { glGetQueryObjectiv(self.gl_query, GL_QUERY_RESULT_AVAILABLE, &mut available) };
-        available != 0
-    }
-
-    /// Delete query.
-    ///
-    /// Note that the query is not deleted automatically when dropped.
-    ///
-    /// Implemented as `glDeleteQueries(...)` on OpenGL/WebGL platforms.
-    pub fn delete(&mut self) {
-        unsafe { glDeleteQueries(1, &mut self.gl_query) }
-        self.gl_query = 0;
     }
 }
