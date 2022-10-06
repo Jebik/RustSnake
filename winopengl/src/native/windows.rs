@@ -27,7 +27,6 @@ use libopengl32::LibOpengl32;
 
 pub(crate) struct Display {
     dpi_aware: bool,
-    cursor_grabbed: bool,
     display_data: NativeDisplayData,
     content_scale: f32,
     window_scale: f32,
@@ -61,35 +60,6 @@ struct WindowPayload {
     display: Display,
 }
 
-unsafe fn update_clip_rect(hwnd: HWND) {
-    // Retrieve the screen coordinates of the client area,
-    // and convert them into client coordinates.
-    let mut rect: RECT = std::mem::zeroed();
-
-    GetClientRect(hwnd, &mut rect as *mut _ as _);
-    let mut upper_left = POINT {
-        x: rect.left,
-        y: rect.top,
-    };
-    let mut lower_right = POINT {
-        x: rect.right,
-        y: rect.bottom,
-    };
-
-    ClientToScreen(hwnd, &mut upper_left as *mut _ as _);
-    ClientToScreen(hwnd, &mut lower_right as *mut _ as _);
-
-    SetRect(
-        &mut rect as *mut _ as _,
-        upper_left.x,
-        upper_left.y,
-        lower_right.x,
-        lower_right.y,
-    );
-    ClipCursor(&mut rect as *mut _ as _);
-}
-
-
 unsafe extern "system" fn win32_wndproc(
     hwnd: HWND,
     umsg: UINT,
@@ -110,9 +80,6 @@ unsafe extern "system" fn win32_wndproc(
         WM_CLOSE => {
             PostQuitMessage(0);
             return 0;
-        }
-        WM_MOVE if display.cursor_grabbed => {
-            update_clip_rect(hwnd);
         }
 
         WM_KEYDOWN | WM_SYSKEYDOWN => {
@@ -362,7 +329,6 @@ where
         let (msg_wnd, msg_dc) = create_msg_window();
         let mut display = Display {
             dpi_aware: false,
-            cursor_grabbed: false,
             content_scale: 1.,
             mouse_scale: 1.,
             window_scale: 1.,
