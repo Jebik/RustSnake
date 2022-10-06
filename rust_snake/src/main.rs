@@ -37,8 +37,6 @@ fn main() {
             window_title: "AmbuSnake".to_string(),
             window_width: SCREEN_WIDTH as _,
             window_height: SCREEN_HEIGHT as _,
-            window_resizable: false,
-            fullscreen: false,
             .. Default::default()
         },
         |ctx| Box::new(game::Game::new(ctx)),

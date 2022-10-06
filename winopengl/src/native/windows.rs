@@ -1,5 +1,5 @@
 use crate::{
-    conf::{Conf, Icon},
+    conf::Conf,
     native::NativeDisplayData,
     Context, EventHandler, GraphicsContext,
 };
@@ -8,7 +8,7 @@ use winapi::{
     shared::{
         minwindef::{DWORD, HINSTANCE, HIWORD, LPARAM, LRESULT, UINT, WPARAM},
         ntdef::{HRESULT, NULL},
-        windef::{HDC, HICON, HMONITOR, HWND, POINT, RECT},
+        windef::{HDC, HMONITOR, HWND, POINT, RECT},
     },
     um::{
         libloaderapi::{FreeLibrary, GetModuleHandleW, GetProcAddress, LoadLibraryA},
@@ -185,96 +185,8 @@ unsafe extern "system" fn win32_wndproc(
     DefWindowProcW(hwnd, umsg, wparam, lparam)
 }
 
-unsafe fn create_win_icon_from_image(width: u32, height: u32, colors: &[u8]) -> Option<HICON> {
-    let mut bi: BITMAPV5HEADER = std::mem::zeroed();
-
-    bi.bV5Size = std::mem::size_of::<BITMAPV5HEADER>() as _;
-    bi.bV5Width = width as i32;
-    bi.bV5Height = -(height as i32); // NOTE the '-' here to indicate that origin is top-left
-    bi.bV5Planes = 1;
-    bi.bV5BitCount = 32;
-    bi.bV5Compression = BI_BITFIELDS;
-    bi.bV5RedMask = 0x00FF0000;
-    bi.bV5GreenMask = 0x0000FF00;
-    bi.bV5BlueMask = 0x000000FF;
-    bi.bV5AlphaMask = 0xFF000000;
-
-    let mut target = std::ptr::null_mut();
-    // const uint8_t* source = (const uint8_t*)desc->pixels.ptr;
-
-    let dc = GetDC(std::ptr::null_mut());
-    let color = CreateDIBSection(
-        dc,
-        &bi as *const _ as *const BITMAPINFO,
-        DIB_RGB_COLORS,
-        &mut target,
-        std::ptr::null_mut(),
-        0,
-    );
-    ReleaseDC(std::ptr::null_mut(), dc);
-    if color.is_null() {
-        return None;
-    }
-    assert!(target.is_null() == false);
-
-    let mask = CreateBitmap(width as _, height as _, 1, 1, std::ptr::null());
-    if mask.is_null() {
-        DeleteObject(color as *mut _);
-        return None;
-    }
-
-    for i in 0..width as usize * height as usize {
-        *(target as *mut u8).offset(i as isize * 4 + 0) = colors[i * 4 + 2];
-        *(target as *mut u8).offset(i as isize * 4 + 1) = colors[i * 4 + 1];
-        *(target as *mut u8).offset(i as isize * 4 + 2) = colors[i * 4 + 0];
-        *(target as *mut u8).offset(i as isize * 4 + 3) = colors[i * 4 + 3];
-    }
-
-    let mut icon_info: ICONINFO = std::mem::zeroed();
-    icon_info.fIcon = 1;
-    icon_info.xHotspot = 0;
-    icon_info.yHotspot = 0;
-    icon_info.hbmMask = mask;
-    icon_info.hbmColor = color;
-    let icon_handle = CreateIconIndirect(&mut icon_info);
-    DeleteObject(color as *mut _);
-    DeleteObject(mask as *mut _);
-
-    Some(icon_handle)
-}
-
-unsafe fn set_icon(wnd: HWND, icon: &Icon) {
-    let big_icon_w = GetSystemMetrics(SM_CXICON);
-    let big_icon_h = GetSystemMetrics(SM_CYICON);
-    let small_icon_w = GetSystemMetrics(SM_CXSMICON);
-    let small_icon_h = GetSystemMetrics(SM_CYSMICON);
-
-    let big_icon = if big_icon_w * big_icon_h >= 64 * 64 {
-        (&icon.big[..], 64, 64)
-    } else {
-        (&icon.medium[..], 32, 32)
-    };
-
-    let small_icon = if small_icon_w * small_icon_h <= 16 * 16 {
-        (&icon.small[..], 16, 16)
-    } else {
-        (&icon.medium[..], 32, 32)
-    };
-
-    let big_icon = create_win_icon_from_image(big_icon.1, big_icon.2, big_icon.0);
-    let small_icon = create_win_icon_from_image(small_icon.1, small_icon.2, small_icon.0);
-    if let Some(icon) = big_icon {
-        SendMessageW(wnd, WM_SETICON, ICON_BIG as _, icon as LPARAM);
-    }
-    if let Some(icon) = small_icon {
-        SendMessageW(wnd, WM_SETICON, ICON_SMALL as _, icon as LPARAM);
-    }
-}
-
 unsafe fn create_window(
     window_title: &str,
-    fullscreen: bool,
-    resizable: bool,
     width: i32,
     height: i32,
 ) -> (HWND, HDC) {
@@ -298,27 +210,10 @@ unsafe fn create_window(
         right: 0,
         bottom: 0,
     };
+    win_style = WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
 
-    if fullscreen {
-        win_style = WS_POPUP | WS_SYSMENU | WS_VISIBLE;
-        rect.right = GetSystemMetrics(SM_CXSCREEN);
-        rect.bottom = GetSystemMetrics(SM_CYSCREEN);
-    } else {
-        win_style = if resizable {
-            WS_CLIPSIBLINGS
-                | WS_CLIPCHILDREN
-                | WS_CAPTION
-                | WS_SYSMENU
-                | WS_MINIMIZEBOX
-                | WS_MAXIMIZEBOX
-                | WS_SIZEBOX
-        } else {
-            WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX
-        };
-
-        rect.right = width;
-        rect.bottom = height;
-    }
+    rect.right = width;
+    rect.bottom = height;
 
     AdjustWindowRectEx(&rect as *const _ as _, win_style, false as _, win_ex_style);
     let win_width = rect.right - rect.left;
@@ -518,22 +413,16 @@ where
     unsafe {
         let (wnd, dc) = create_window(
             &conf.window_title,
-            conf.fullscreen,
-            conf.window_resizable,
             conf.window_width as _,
             conf.window_height as _,
         );
-        if let Some(icon) = &conf.icon {
-            set_icon(wnd, icon);
-        }
-
         let libopengl32 = LibOpengl32::try_load().expect("Failed to load opengl32.dll.");
 
         let (msg_wnd, msg_dc) = create_msg_window();
         let mut display = Display {
             fullscreen: false,
             dpi_aware: false,
-            window_resizable: conf.window_resizable,
+            window_resizable: false,
             cursor_grabbed: false,
             content_scale: 1.,
             mouse_scale: 1.,
@@ -547,13 +436,13 @@ where
         };
 
         display.update_dimensions(wnd);
-        display.init_dpi(conf.high_dpi);
+        display.init_dpi(false);
 
         let mut wgl = wgl::Wgl::new(&mut display);
         let gl_ctx = wgl.create_context(
             &mut display,
-            conf.sample_count,
-            conf.platform.swap_interval.unwrap_or(1),
+            1,
+            1,
         );
 
         super::gl::load_gl_funcs(|proc| display.get_proc_address(proc));
@@ -584,8 +473,7 @@ where
                     DispatchMessageW(&mut msg as *mut _ as _);
                 }
             }
-            p.event_handler
-                .update(p.context.with_display(&mut p.display));
+            p.event_handler.update(p.context.with_display(&mut p.display));
             p.event_handler.draw(p.context.with_display(&mut p.display));
             SwapBuffers(p.display.dc);
             if p.display.display_data.quit_requested {

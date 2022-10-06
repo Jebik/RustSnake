@@ -1,19 +1,10 @@
 pub mod conf;
 mod event;
 pub mod fs;
-pub mod graphics;
-
-pub mod native;
-
-#[cfg(feature = "log-impl")]
-pub mod log;
-
+pub mod graphics;pub mod native;
 pub use event::*;
-
 pub use graphics::*;
-
 pub use native::{gl, NativeDisplay};
-
 pub use graphics::GraphicsContext as Context;
 
 pub mod date {
@@ -26,7 +17,6 @@ pub mod date {
         time.as_secs_f64()
     }
 }
-
 impl Context {
     // Updates the display pointer inside the Context
     // Context should always be passed to event handlers through "with_display"
