@@ -12,41 +12,44 @@ void main() {
     {
         discard;
     }
-    else if (res.g > min)
+    else 
     {
-        if (res.g < 100./255.)
+        if (res.g > min)
         {
-            if (time <= 0.6)
-            {  
-                res.g = 0.8;
-            }
-            else
+            if (res.g < 100./255.)
             {
-                res.g = 0.4;
+                if (time <= 0.6)
+                {  
+                    res.g = 0.8;
+                }
+                else
+                {
+                    res.g = 0.4;
+                }
             }
-        }
-        else if (res.g < 200./255.)
-        {
-            if (time <= 0.8 && time > 0.2)
-            {  
-                res.g = 0.8;
-            }
-            else
+            else if (res.g < 200./255.)
             {
-                res.g = 0.4;
+                if (time <= 0.8 && time > 0.2)
+                {  
+                    res.g = 0.8;
+                }
+                else
+                {
+                    res.g = 0.4;
+                }
             }
-        }
-        else
-        {
-            if (time > 0.4)
-            {   
-                res.g = 0.8;
-            }
-            else
+            else 
             {
-                res.g = 0.4;
+                if (time > 0.4)
+                {   
+                    res.g = 0.8;
+                }
+                else
+                {
+                    res.g = 0.4;
+                }
             }
-        }
-    }   
-    gl_FragColor = res;
+        }   
+        gl_FragColor = res;
+    }
 }
