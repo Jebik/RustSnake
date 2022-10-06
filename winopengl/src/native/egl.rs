@@ -2,20 +2,6 @@
 
 use crate::native::module;
 
-#[cfg(target_os = "linux")]
-pub type EGLNativeDisplayType = *mut crate::native::linux_x11::libx11::Display;
-#[cfg(target_os = "linux")]
-pub type EGLNativePixmapType = crate::native::linux_x11::libx11::Pixmap;
-#[cfg(target_os = "linux")]
-pub type EGLNativeWindowType = crate::native::linux_x11::libx11::Window;
-
-#[cfg(target_os = "android")]
-pub type EGLNativeDisplayType = *mut ();
-#[cfg(target_os = "android")]
-pub type EGLNativePixmapType = ::std::os::raw::c_ulong;
-#[cfg(target_os = "android")]
-pub type EGLNativeWindowType = ::std::os::raw::c_ulong;
-
 pub use core::ptr::null_mut;
 
 pub const EGL_SUCCESS: u32 = 12288;
