@@ -13,7 +13,7 @@ mod game;
 //REMOVE ALL UNUSED
 //SIMPLIFIE A LOT
 
-fn main() {   
+fn main() {
     let mut message_body = "Vous avez trouver le snake cacher\n".to_owned();
     message_body += "Utilisez les fleches pour tourner\n";
     message_body += "Utilisez P pour mettre le jeu en pause\n";

@@ -131,6 +131,11 @@ impl Snake {
     }
 
     fn compute_target(&mut self) {
+        self.dir = self.next_dir;
+
+        //BODY TARGET
+        let mut last_x = self.pos.x;
+        let mut last_y = self.pos.y;
         match self.dir {
             Dir::Left => 
             {   
@@ -149,10 +154,6 @@ impl Snake {
                 self.pos.y = self.pos.y - 1;        
             }
         }
-
-        //BODY TARGET
-        let mut last_x = self.pos.x;
-        let mut last_y = self.pos.y;
         for b in self.body_part.iter_mut()
         {
             let curr_x = b.x;
@@ -162,7 +163,6 @@ impl Snake {
             last_x = curr_x;
             last_y = curr_y;
         }
-        self.dir = self.next_dir;
     }
 
     pub(crate) fn eat_himself(&self) -> bool {        

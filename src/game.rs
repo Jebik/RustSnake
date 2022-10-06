@@ -2,7 +2,7 @@ use std::{ffi::CString, time::Duration};
 
 use miniquad::{EventHandler, Context, KeyCode, KeyMods};
 use rand::Rng;
-use winapi::um::winuser::{MessageBoxA, MB_OK, MB_ICONINFORMATION};
+use winapi::um::winuser::{MessageBoxA, MB_OK, MB_ICONINFORMATION, SetWindowTextA};
 
 mod bonus;
 mod snake;
@@ -12,6 +12,7 @@ use crate::pos::Pos;
 use self::{snake::{Snake, Dir}, bonus::Bonus, background::Background};
 
 #[derive(Clone, Copy)]
+#[derive(Debug)]
 pub enum DifficultyLevel 
 {
     Easy,
@@ -101,12 +102,14 @@ impl Game
             {
                 //We got apple
                 self.score += self.difficulty.score_per_bonus;
+                self.update_title();
                 self.bonus_list.remove(i);
                 self.get_new_difficulty();
                 self.snake.grow();
+                self.spawn_bonus();
+                break;
             }
         }
-        self.spawn_bonus();
     }
 
     fn check_game_over(&mut self) {
@@ -120,19 +123,34 @@ impl Game
         }
     }
 
-    fn get_new_difficulty(&mut self) -> Difficulty {
+    fn get_new_difficulty(&mut self) {
 
         let new_difficulty = match self.difficulty.level {
-            DifficultyLevel::Easy => DifficultyLevel::Medium ,
+            DifficultyLevel::Easy => DifficultyLevel::Medium,
             DifficultyLevel::Medium => DifficultyLevel::Hard,
             DifficultyLevel::Hard => DifficultyLevel::Insane,
             _ =>  self.difficulty.level
         };
         if self.score > self.difficulty.next_level_trigger
         {
-            return get_difficulty(new_difficulty);
+            eprintln!("Passing to={:?}", new_difficulty);
+            self.difficulty = get_difficulty(new_difficulty);
         }
-        self.difficulty
+    }
+
+    fn update_title(&self) {
+        //WIN API MESSAGE SCORE
+        let mut title = "AmbuSnake".to_owned();
+        title += " Score: ";
+        title += &self.score.to_string();
+    
+        let lp_text = CString::new(title).unwrap();
+        unsafe {
+            SetWindowTextA(
+                std::ptr::null_mut(),
+                lp_text.as_ptr(),
+            );
+        }
     }
 }
 
@@ -140,7 +158,7 @@ fn get_difficulty(level: DifficultyLevel) -> Difficulty {
     match  level {
         DifficultyLevel::Easy => Difficulty
         {
-            move_duration: Duration::from_millis(300),
+            move_duration: Duration::from_millis(400),
             score_per_bonus: 1,
             bonus_count: 4,
             level: DifficultyLevel::Easy,
@@ -148,7 +166,7 @@ fn get_difficulty(level: DifficultyLevel) -> Difficulty {
         },
         DifficultyLevel::Medium =>Difficulty
         {
-            move_duration: Duration::from_millis(200),
+            move_duration: Duration::from_millis(300),
             score_per_bonus: 4,
             bonus_count: 3,
             level: DifficultyLevel::Medium,
@@ -156,7 +174,7 @@ fn get_difficulty(level: DifficultyLevel) -> Difficulty {
         },
         DifficultyLevel::Hard => Difficulty
         {
-            move_duration: Duration::from_millis(100),
+            move_duration: Duration::from_millis(200),
             score_per_bonus: 6,
             bonus_count: 2,
             level: DifficultyLevel::Hard,
@@ -164,7 +182,7 @@ fn get_difficulty(level: DifficultyLevel) -> Difficulty {
         },
         DifficultyLevel::Insane => Difficulty
         {
-            move_duration: Duration::from_millis(50),
+            move_duration: Duration::from_millis(100),
             score_per_bonus: 10,
             bonus_count: 1,
             level: DifficultyLevel::Insane,
@@ -202,8 +220,13 @@ impl EventHandler for Game
         //On attend un premier input pour pas lancer tout de suite le jeu
         if !self.running
         {
-            self.running = true;
-            self.snake.start();
+            match _keycode {
+                KeyCode::Up => self.running = false,
+                KeyCode::Left => self.running = false,
+                KeyCode::Down => self.running = false,
+                KeyCode::Right => self.running = false,                
+                _ => ()      
+            }
         }
         else
         {
