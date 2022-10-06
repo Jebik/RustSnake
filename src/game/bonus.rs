@@ -14,7 +14,7 @@ impl Bonus {
         Bonus 
         {
             pos: Pos { x: 0, y: 0 },
-            graphic: GraphicalObject::new(ctx, SNAKE_BONUS) 
+            graphic: GraphicalObject::new(ctx, SNAKE_BONUS, false) 
         }
     }
     

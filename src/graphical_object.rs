@@ -1,3 +1,5 @@
+use std::time::{SystemTime, Duration};
+
 use miniquad::{
     Bindings, Buffer, BufferLayout, BufferType, Context, Pipeline, Shader, Texture,
     VertexAttribute, VertexFormat, TextureParams, ShaderMeta, UniformBlockLayout, UniformDesc, UniformType,
@@ -22,6 +24,7 @@ pub struct GraphicalObject {
     y_offset: f32,
     bindings: Bindings,
     pipeline: Pipeline,
+    time: SystemTime
 }
 impl GraphicalObject {
     pub fn rotate(&mut self, ctx: &mut Context, rotation: ROTATION)
@@ -32,6 +35,8 @@ impl GraphicalObject {
     }
 
     pub fn draw(&mut self, ctx: &mut Context, x: f32, y: f32) {
+        let delta = self.time.elapsed().unwrap_or(Duration::from_secs(0)).as_secs_f32() % 2.;
+        let ratio = delta/2.;
         ctx.apply_pipeline(&self.pipeline);
         ctx.apply_bindings(&self.bindings);
         ctx.apply_uniforms(&Uniforms {
@@ -39,11 +44,12 @@ impl GraphicalObject {
                 self.x_offset + (2. * x / (SCREEN_WIDTH/self.width)) - 1.,
                 self.y_offset + (2. * y / (SCREEN_HEIGHT/self.height)) - 1.,
             ),
+            time: ratio
         });
         ctx.draw(0, 6, 1);
     }
 
-    pub(crate) fn new(ctx: &mut Context, file: &[u8]) -> GraphicalObject 
+    pub(crate) fn new(ctx: &mut Context, file: &[u8], body: bool) -> GraphicalObject 
     { 
         let file = Decoder::new(file);
         let res = file.decode().unwrap();
@@ -60,6 +66,7 @@ impl GraphicalObject {
 
         let x_offset = widhtf / SCREEN_WIDTH;
         let y_offset = heightf / SCREEN_HEIGHT;
+        let now = SystemTime::now();
 
         GraphicalObject {
             width: widhtf,
@@ -67,7 +74,8 @@ impl GraphicalObject {
             x_offset,
             y_offset,
             bindings: init_bindings(ctx, data, width, height),
-            pipeline: init_pipeline(ctx)
+            pipeline: init_pipeline(ctx, body),
+            time: now
         }
     }       
 }
@@ -98,9 +106,14 @@ fn init_bindings(ctx: &mut Context, data: &[u8], width: u16, height: u16) -> Bin
     }
 }
 
-fn init_pipeline(ctx: &mut Context) -> Pipeline {    
+fn init_pipeline(ctx: &mut Context, body: bool) -> Pipeline {    
     let vertex_shader:&str = std::str::from_utf8(include_bytes!("./shaders/shader.vs")).unwrap();
-    let fragment_shader:&str = std::str::from_utf8(include_bytes!("./shaders/shader.fs")).unwrap();
+    let mut fragment_shader = std::str::from_utf8(include_bytes!("./shaders/shader.fs")).unwrap();
+    if body
+    {
+        fragment_shader = std::str::from_utf8(include_bytes!("./shaders/body_shader.fs")).unwrap();
+    }
+        
     let shader = Shader::new(ctx, vertex_shader, fragment_shader, meta()).unwrap();
 
     Pipeline::new(
@@ -159,7 +172,8 @@ fn get_rot_vertex(rotation: ROTATION, width: f32, height: f32) -> [Vertex; 4] {
 #[repr(C)]
 pub struct Uniforms 
 {
-    pub offset: (f32, f32)
+    pub offset: (f32, f32),
+    pub time: f32
 }
 
 #[repr(C)]
@@ -177,7 +191,7 @@ pub fn meta() -> ShaderMeta {
     ShaderMeta {
         images: vec!["tex".to_string()],
         uniforms: UniformBlockLayout {
-            uniforms: vec![UniformDesc::new("offset", UniformType::Float2)],
+            uniforms: vec![UniformDesc::new("offset", UniformType::Float2), UniformDesc::new("time", UniformType::Float1)],
         },
     }
 }

@@ -9,7 +9,7 @@ impl Background {
     {
         Background 
         {
-            graphic: GraphicalObject::new(ctx, SNAKE_BG) 
+            graphic: GraphicalObject::new(ctx, SNAKE_BG, false) 
         }
     }
     

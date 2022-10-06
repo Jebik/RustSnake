@@ -46,8 +46,8 @@ impl Snake {
             last_move_start:SystemTime::now(),
             
             //ForDrawing
-            body: GraphicalObject::new(ctx, SNAKE_BODY),
-            head: GraphicalObject::new(ctx, SNAKE_HEAD)
+            body: GraphicalObject::new(ctx, SNAKE_BODY, true),
+            head: GraphicalObject::new(ctx, SNAKE_HEAD, false)
         }
     }
 
