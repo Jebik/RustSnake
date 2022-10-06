@@ -559,13 +559,15 @@ pub struct GraphicsContext {
     pipelines: Vec<PipelineInternal>,
     default_framebuffer: GLuint,
     cache: GlCache,
+    width:i32,
+    height:i32,
 
     pub(crate) features: Features,
     pub(crate) display: Option<*mut dyn crate::NativeDisplay>,
 }
 
 impl GraphicsContext {
-    pub fn new() -> GraphicsContext {
+    pub fn new(width:i32, height:i32) -> GraphicsContext {
         unsafe {
             let mut default_framebuffer: GLuint = 0;
             glGetIntegerv(
@@ -581,6 +583,8 @@ impl GraphicsContext {
                 shaders: vec![],
                 pipelines: vec![],
                 features: Default::default(),
+                width,
+                height,
                 cache: GlCache {
                     stored_index_buffer: 0,
                     stored_index_type: None,
@@ -822,18 +826,10 @@ impl Context {
 
     /// start rendering to an offscreen framebuffer
     pub fn begin_pass(&mut self, action: PassAction) {
-        let (framebuffer, w, h) = {
-                let (screen_width, screen_height) = self.screen_size();
-                (
-                    self.default_framebuffer,
-                    screen_width as i32,
-                    screen_height as i32,
-                )
-            };
         unsafe {
-            glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-            glViewport(0, 0, w, h);
-            glScissor(0, 0, w, h);
+            glBindFramebuffer(GL_FRAMEBUFFER, self.default_framebuffer);
+            glViewport(0, 0, self.width, self.height);
+            glScissor(0, 0, self.width, self.height);
         }
         match action {
             PassAction::Nothing => {}

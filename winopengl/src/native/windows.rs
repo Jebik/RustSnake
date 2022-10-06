@@ -39,13 +39,6 @@ pub(crate) struct Display {
 }
 
 impl crate::native::NativeDisplay for Display {
-    fn screen_size(&self) -> (f32, f32) {
-        (
-            self.display_data.screen_width as _,
-            self.display_data.screen_height as _,
-        )
-    }
-
     fn order_quit(&mut self) {
         self.display_data.quit_ordered = true;
     }
@@ -353,7 +346,7 @@ where
 
         super::gl::load_gl_funcs(|proc| display.get_proc_address(proc));
 
-        let mut context = GraphicsContext::new();
+        let mut context = GraphicsContext::new(conf.window_width, conf.window_height);
         context.features.instancing = !crate::gl::is_gl2();
 
         let event_handler = f(context.with_display(&mut display));

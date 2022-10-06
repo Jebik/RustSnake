@@ -29,9 +29,6 @@ impl Context {
     pub fn display_mut(&mut self) -> &mut dyn NativeDisplay {
         unsafe { &mut *self.display.unwrap() }
     }
-    pub fn screen_size(&self) -> (f32, f32) {
-        self.display().screen_size()
-    }
     pub fn order_quit(&mut self) {
         self.display_mut().order_quit();
     }

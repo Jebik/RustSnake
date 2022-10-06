@@ -25,7 +25,6 @@ impl Default for NativeDisplayData {
 }
 
 pub trait NativeDisplay: std::any::Any {
-    fn screen_size(&self) -> (f32, f32);
     fn order_quit(&mut self);
     fn as_any(&mut self) -> &mut dyn std::any::Any;
 }
