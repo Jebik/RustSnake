@@ -27,6 +27,11 @@ pub struct GraphicalObject {
     time: SystemTime
 }
 impl GraphicalObject {
+    pub fn start_shader_time(&mut self)
+    {
+        self.time = SystemTime::now();
+    }
+
     pub fn rotate(&mut self, ctx: &mut Context, rotation: ROTATION)
     {
         let square_vertices: [Vertex; 4] = get_rot_vertex(rotation, self.width, self.height);    

@@ -147,6 +147,10 @@ impl Snake {
     
     pub fn grow(&mut self) 
     {
+        if self.body_part.len() == 0
+        {
+            self.body.start_shader_time();
+        }
         let curr = self.body_part.last().map_or(&self.curr, |last| &last.curr);
         let x = curr.x;
         let y = curr.y;
