@@ -1,8 +1,8 @@
-use std::time::{SystemTime, Duration};
+use std::time::SystemTime;
 
 use winopengl::{
     Bindings, Buffer, BufferLayout, BufferType, Context, Pipeline, Shader, Texture,
-    VertexAttribute, VertexFormat, TextureParams, ShaderMeta, UniformBlockLayout, UniformDesc, UniformType,
+    VertexAttribute, VertexFormat, TextureParams, ShaderMeta, UniformBlockLayout, UniformDesc,
 };
 
 use crate::{pos::Pos, texture::TextureData, game::{SCREEN_WIDTH_FLOAT, SCREEN_HEIGHT_FLOAT}};
@@ -37,18 +37,14 @@ impl GraphicalObject {
         self.bindings.vertex_buffers = vec![vertex_buffer];
     }
 
-    pub fn draw(&mut self, ctx: &mut Context, pos:Pos, shader_time:f32) {
-        let delta = self.time.elapsed().unwrap_or(Duration::from_secs(0)).as_secs_f32() % 2.;
-        let ratio = (delta/2. + shader_time)%1.;
-
+    pub fn draw(&mut self, ctx: &mut Context, pos:Pos) {
         ctx.apply_pipeline(&self.pipeline);
         ctx.apply_bindings(&self.bindings);
         ctx.apply_uniforms(&Uniforms {
             offset: (
                 self.x_offset + (2. * f32::from(pos.x) / (SCREEN_WIDTH_FLOAT/self.width)) - 1.,
                 self.y_offset + (2. * f32::from(pos.y) / (SCREEN_HEIGHT_FLOAT/self.height)) - 1.,
-            ),
-            time: ratio
+            )
         });
         ctx.draw(0, 6, 1);
     }
@@ -166,8 +162,7 @@ fn get_rot_vertex(rotation: ROTATION, width: f32, height: f32) -> [Vertex; 4] {
 #[repr(C)]
 pub struct Uniforms 
 {
-    pub offset: (f32, f32),
-    pub time: f32
+    pub offset: (f32, f32)
 }
 
 #[repr(C)]
@@ -185,7 +180,7 @@ pub fn meta() -> ShaderMeta {
     ShaderMeta {
         images: vec!["tex".to_string()],
         uniforms: UniformBlockLayout {
-            uniforms: vec![UniformDesc::new("offset", UniformType::Float2), UniformDesc::new("time", UniformType::Float1)],
+            uniforms: vec![UniformDesc::new("offset")],
         },
     }
 }

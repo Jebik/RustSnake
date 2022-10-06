@@ -122,13 +122,11 @@ impl Snake {
     
     pub fn draw(&mut self, ctx: &mut Context) {
         self.head.rotate(ctx, get_rotation(self.dir));
-        self.head.draw(ctx, self.pos, 0.);
-        let mut shader_time = 0.0;
+        self.head.draw(ctx, self.pos);
         //SnakeDraw
         for b in &self.body_part
         {
-            self.body.draw(ctx, *b, shader_time);
-            shader_time += 0.2;
+            self.body.draw(ctx, *b);
         }
     }
 

@@ -23,9 +23,6 @@ impl Context {
         self.display = Some(display);
         self
     }
-    pub fn display(&self) -> &dyn NativeDisplay {
-        unsafe { &*self.display.unwrap() }
-    }
     pub fn display_mut(&mut self) -> &mut dyn NativeDisplay {
         unsafe { &mut *self.display.unwrap() }
     }
@@ -39,8 +36,5 @@ pub fn start<F>(conf: conf::Conf, f: F)
 where
     F: 'static + FnOnce(&mut Context) -> Box<dyn EventHandler>,
 {
-    #[cfg(target_os = "windows")]
-    {
-        native::windows::run(&conf, f);
-    }
+    native::windows::run(&conf, f);
 }

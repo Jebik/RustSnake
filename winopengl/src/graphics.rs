@@ -5,6 +5,8 @@ pub use texture::{FilterMode, Texture, TextureAccess, TextureFormat, TexturePara
 use crate::graphics::GraphicsContext as Context;
 use crate::gl::*;
 
+const FLOAT2_SIZE:usize = 8;
+
 fn get_uniform_location(program: GLuint, name: &str) -> Option<i32> {
     let cname = CString::new(name).unwrap_or_else(|e| panic!("{}", e));
     let location = unsafe { glGetUniformLocation(program, cname.as_ptr()) };
@@ -16,49 +18,9 @@ fn get_uniform_location(program: GLuint, name: &str) -> Option<i32> {
     Some(location)
 }
 
-#[derive(Clone, Copy, Debug)]
-pub enum UniformType {
-    /// One 32-bit wide float (equivalent to `f32`)
-    Float1,
-    /// Two 32-bit wide floats (equivalent to `[f32; 2]`)
-    Float2,
-    /// Three 32-bit wide floats (equivalent to `[f32; 3]`)
-    Float3,
-    /// Four 32-bit wide floats (equivalent to `[f32; 4]`)
-    Float4,
-    /// One unsigned 32-bit integers (equivalent to `[u32; 1]`)
-    Int1,
-    /// Two unsigned 32-bit integers (equivalent to `[u32; 2]`)
-    Int2,
-    /// Three unsigned 32-bit integers (equivalent to `[u32; 3]`)
-    Int3,
-    /// Four unsigned 32-bit integers (equivalent to `[u32; 4]`)
-    Int4,
-    /// Four by four matrix of 32-bit floats
-    Mat4,
-}
-
-impl UniformType {
-    /// Byte size for a given UniformType
-    pub fn size(&self) -> usize {
-        match self {
-            UniformType::Float1 => 4,
-            UniformType::Float2 => 8,
-            UniformType::Float3 => 12,
-            UniformType::Float4 => 16,
-            UniformType::Int1 => 4,
-            UniformType::Int2 => 8,
-            UniformType::Int3 => 12,
-            UniformType::Int4 => 16,
-            UniformType::Mat4 => 64,
-        }
-    }
-}
-
 #[derive(Clone)]
 pub struct UniformDesc {
     name: String,
-    uniform_type: UniformType,
     array_count: usize,
 }
 
@@ -68,18 +30,10 @@ pub struct UniformBlockLayout {
 }
 
 impl UniformDesc {
-    pub fn new(name: &str, uniform_type: UniformType) -> UniformDesc {
+    pub fn new(name: &str) -> UniformDesc {
         UniformDesc {
             name: name.to_string(),
-            uniform_type,
             array_count: 1,
-        }
-    }
-
-    pub fn array(self, array_count: usize) -> UniformDesc {
-        UniformDesc {
-            array_count,
-            ..self
         }
     }
 }
@@ -319,7 +273,6 @@ pub struct ShaderUniform {
     gl_loc: UniformLocation,
     _offset: usize,
     _size: usize,
-    uniform_type: UniformType,
     array_count: i32,
 }
 
@@ -737,50 +690,20 @@ impl Context {
         let mut offset = 0;
 
         for (_, uniform) in shader.uniforms.iter().enumerate() {
-            use UniformType::*;
-
             assert!(
-                offset <= size - uniform.uniform_type.size() / 4,
+                offset <= size - FLOAT2_SIZE / 4,
                 "Uniforms struct does not match shader uniforms layout"
             );
 
             unsafe {
                 let data = (uniform_ptr as *const f32).offset(offset as isize);
-                let data_int = (uniform_ptr as *const i32).offset(offset as isize);
 
-                if let Some(gl_loc) = uniform.gl_loc {
-                    match uniform.uniform_type {
-                        Float1 => {
-                            glUniform1fv(gl_loc, uniform.array_count, data);
-                        }
-                        Float2 => {
-                            glUniform2fv(gl_loc, uniform.array_count, data);
-                        }
-                        Float3 => {
-                            glUniform3fv(gl_loc, uniform.array_count, data);
-                        }
-                        Float4 => {
-                            glUniform4fv(gl_loc, uniform.array_count, data);
-                        }
-                        Int1 => {
-                            glUniform1iv(gl_loc, uniform.array_count, data_int);
-                        }
-                        Int2 => {
-                            glUniform2iv(gl_loc, uniform.array_count, data_int);
-                        }
-                        Int3 => {
-                            glUniform3iv(gl_loc, uniform.array_count, data_int);
-                        }
-                        Int4 => {
-                            glUniform4iv(gl_loc, uniform.array_count, data_int);
-                        }
-                        Mat4 => {
-                            glUniformMatrix4fv(gl_loc, uniform.array_count, 0, data);
-                        }
-                    }
+                if let Some(gl_loc) = uniform.gl_loc 
+                {
+                    glUniform2fv(gl_loc, uniform.array_count, data);
                 }
             }
-            offset += uniform.uniform_type.size() / 4 * uniform.array_count as usize;
+            offset += FLOAT2_SIZE / 4 * uniform.array_count as usize;
         }
     }
 
@@ -937,11 +860,10 @@ fn load_shader_internal(
             let res = ShaderUniform {
                 gl_loc: get_uniform_location(program, &uniform.name),
                 _offset: *offset,
-                _size: uniform.uniform_type.size(),
-                uniform_type: uniform.uniform_type,
+                _size: FLOAT2_SIZE,
                 array_count: uniform.array_count as _,
             };
-            *offset += uniform.uniform_type.size() * uniform.array_count;
+            *offset += FLOAT2_SIZE * uniform.array_count;
             Some(res)
         }).collect();
 

@@ -19,6 +19,6 @@ impl Bonus {
     
     pub fn draw(&mut self, ctx :&mut Context, pos: Pos) 
     {
-        self.graphic.draw(ctx, pos, 0.);        
+        self.graphic.draw(ctx, pos);        
     }
 }
