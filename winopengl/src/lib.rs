@@ -1,6 +1,5 @@
 pub mod conf;
 mod event;
-pub mod fs;
 pub mod graphics;pub mod native;
 pub use event::*;
 pub use graphics::*;
@@ -24,28 +23,15 @@ impl Context {
         self.display = Some(display);
         self
     }
-
     pub fn display(&self) -> &dyn NativeDisplay {
         unsafe { &*self.display.unwrap() }
     }
-
     pub fn display_mut(&mut self) -> &mut dyn NativeDisplay {
         unsafe { &mut *self.display.unwrap() }
     }
-
-    /// The current framebuffer size in pixels
-    /// NOTE: [High DPI Rendering](../conf/index.html#high-dpi-rendering)
     pub fn screen_size(&self) -> (f32, f32) {
         self.display().screen_size()
     }
-
-    /// This function simply quits the application without
-    /// giving the user a chance to intervene. Usually this might
-    /// be called when the user clicks the 'Ok' button in a 'Really Quit?'
-    /// dialog box
-    /// Window might not be actually closed right away (exit(0) might not
-    /// happen in the order_quit implmentation) and execution might continue for some time after
-    /// But the window is going to be inevitably closed at some point.
     pub fn order_quit(&mut self) {
         self.display_mut().order_quit();
     }
@@ -54,22 +40,6 @@ impl Context {
     pub fn set_window_size(&mut self, new_width: u32, new_height: u32) {
         self.display_mut().set_window_size(new_width, new_height);
     }
-}
-
-#[derive(Debug, Copy, Clone, PartialEq, Hash, Eq)]
-pub enum CursorIcon {
-    Default,
-    Help,
-    Pointer,
-    Wait,
-    Crosshair,
-    Text,
-    Move,
-    NotAllowed,
-    EWResize,
-    NSResize,
-    NESWResize,
-    NWSEResize,
 }
 
 /// Start miniquad.
