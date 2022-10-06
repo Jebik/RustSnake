@@ -209,100 +209,6 @@ struct ShaderInternal {
     uniforms: Vec<ShaderUniform>,
 }
 
-/// Pixel arithmetic description for blending operations.
-/// Will be used in an equation:
-/// `equation(sfactor * source_color, dfactor * destination_color)`
-/// Where source_color is the new pixel color and destination color is color from the destination buffer.
-///
-/// Example:
-///```
-///# use miniquad::{BlendState, BlendFactor, BlendValue, Equation};
-///BlendState::new(
-///    Equation::Add,
-///    BlendFactor::Value(BlendValue::SourceAlpha),
-///    BlendFactor::OneMinusValue(BlendValue::SourceAlpha)
-///);
-///```
-/// This will be `source_color * source_color.a + destination_color * (1 - source_color.a)`
-/// Wich is quite common set up for alpha blending.
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub struct BlendState {
-    equation: Equation,
-    sfactor: BlendFactor,
-    dfactor: BlendFactor,
-}
-
-impl BlendState {
-    pub fn new(equation: Equation, sfactor: BlendFactor, dfactor: BlendFactor) -> BlendState {
-        BlendState {
-            equation,
-            sfactor,
-            dfactor,
-        }
-    }
-}
-
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub struct StencilState {
-    pub front: StencilFaceState,
-    pub back: StencilFaceState,
-}
-
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub struct StencilFaceState {
-    /// Operation to use when stencil test fails
-    pub fail_op: StencilOp,
-
-    /// Operation to use when stencil test passes, but depth test fails
-    pub depth_fail_op: StencilOp,
-
-    /// Operation to use when both stencil and depth test pass,
-    /// or when stencil pass and no depth or depth disabled
-    pub pass_op: StencilOp,
-
-    /// Used for stencil testing with test_ref and test_mask: if (test_ref & test_mask) *test_func* (*stencil* && test_mask)
-    /// Default is Always, which means "always pass"
-    pub test_func: CompareFunc,
-
-    /// Default value: 0
-    pub test_ref: i32,
-
-    /// Default value: all 1s
-    pub test_mask: u32,
-
-    /// Specifies a bit mask to enable or disable writing of individual bits in the stencil planes
-    /// Default value: all 1s
-    pub write_mask: u32,
-}
-
-/// Operations performed on current stencil value when comparison test passes or fails.
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub enum StencilOp {
-    /// Default value
-    Keep,
-    Zero,
-    Replace,
-    IncrementClamp,
-    DecrementClamp,
-    Invert,
-    IncrementWrap,
-    DecrementWrap,
-}
-
-/// Depth and stencil compare function
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub enum CompareFunc {
-    /// Default value
-    Always,
-    Never,
-    Less,
-    Equal,
-    LessOrEqual,
-    Greater,
-    NotEqual,
-    GreaterOrEqual,
-}
-
 type ColorMask = (bool, bool, bool, bool);
 
 #[derive(Default, Copy, Clone)]
@@ -910,36 +816,6 @@ impl From<BlendFactor> for GLenum {
     }
 }
 
-impl From<StencilOp> for GLenum {
-    fn from(op: StencilOp) -> Self {
-        match op {
-            StencilOp::Keep => GL_KEEP,
-            StencilOp::Zero => GL_ZERO,
-            StencilOp::Replace => GL_REPLACE,
-            StencilOp::IncrementClamp => GL_INCR,
-            StencilOp::DecrementClamp => GL_DECR,
-            StencilOp::Invert => GL_INVERT,
-            StencilOp::IncrementWrap => GL_INCR_WRAP,
-            StencilOp::DecrementWrap => GL_DECR_WRAP,
-        }
-    }
-}
-
-impl From<CompareFunc> for GLenum {
-    fn from(cf: CompareFunc) -> Self {
-        match cf {
-            CompareFunc::Always => GL_ALWAYS,
-            CompareFunc::Never => GL_NEVER,
-            CompareFunc::Less => GL_LESS,
-            CompareFunc::Equal => GL_EQUAL,
-            CompareFunc::LessOrEqual => GL_LEQUAL,
-            CompareFunc::Greater => GL_GREATER,
-            CompareFunc::NotEqual => GL_NOTEQUAL,
-            CompareFunc::GreaterOrEqual => GL_GEQUAL,
-        }
-    }
-}
-
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum PrimitiveType {
     Triangles,
@@ -998,9 +874,6 @@ pub struct PipelineParams {
     pub depth_test: Comparison,
     pub depth_write: bool,
     pub depth_write_offset: Option<(f32, f32)>,
-    pub color_blend: Option<BlendState>,
-    pub alpha_blend: Option<BlendState>,
-    pub stencil_test: Option<StencilState>,
     pub color_write: ColorMask,
     pub primitive_type: PrimitiveType,
 }
@@ -1015,9 +888,6 @@ impl Default for PipelineParams {
             depth_test: Comparison::Always, // no depth test,
             depth_write: false,             // no depth write,
             depth_write_offset: None,
-            color_blend: None,
-            alpha_blend: None,
-            stencil_test: None,
             color_write: (true, true, true, true),
             primitive_type: PrimitiveType::Triangles,
         }
