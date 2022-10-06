@@ -531,92 +531,12 @@ pub enum PassAction {
         stencil: Option<i32>,
     },
 }
-
-impl PassAction {
-    pub fn clear_color(r: f32, g: f32, b: f32, a: f32) -> PassAction {
-        PassAction::Clear {
-            color: Some((r, g, b, a)),
-            depth: Some(1.),
-            stencil: None,
-        }
-    }
-}
-
 impl Default for PassAction {
     fn default() -> PassAction {
         PassAction::Clear {
             color: Some((0.0, 0.0, 0.0, 0.0)),
             depth: Some(1.),
             stencil: None,
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct RenderPass(usize);
-
-struct RenderPassInternal {
-    gl_fb: GLuint,
-    texture: Texture,
-    depth_texture: Option<Texture>,
-}
-
-impl RenderPass {
-    pub fn new(
-        ctx: &mut Context,
-        color_img: Texture,
-        depth_img: impl Into<Option<Texture>>,
-    ) -> RenderPass {
-        let mut gl_fb = 0;
-
-        let depth_img = depth_img.into();
-
-        unsafe {
-            glGenFramebuffers(1, &mut gl_fb as *mut _);
-            glBindFramebuffer(GL_FRAMEBUFFER, gl_fb);
-            glFramebufferTexture2D(
-                GL_FRAMEBUFFER,
-                GL_COLOR_ATTACHMENT0,
-                GL_TEXTURE_2D,
-                color_img.texture,
-                0,
-            );
-            if let Some(depth_img) = depth_img {
-                glFramebufferTexture2D(
-                    GL_FRAMEBUFFER,
-                    GL_DEPTH_ATTACHMENT,
-                    GL_TEXTURE_2D,
-                    depth_img.texture,
-                    0,
-                );
-            }
-            glBindFramebuffer(GL_FRAMEBUFFER, ctx.default_framebuffer);
-        }
-        let pass = RenderPassInternal {
-            gl_fb,
-            texture: color_img,
-            depth_texture: depth_img,
-        };
-
-        ctx.passes.push(pass);
-
-        RenderPass(ctx.passes.len() - 1)
-    }
-
-    pub fn texture(&self, ctx: &mut Context) -> Texture {
-        let render_pass = &mut ctx.passes[self.0];
-
-        render_pass.texture
-    }
-
-    pub fn delete(&self, ctx: &mut Context) {
-        let render_pass = &mut ctx.passes[self.0];
-
-        unsafe { glDeleteFramebuffers(1, &mut render_pass.gl_fb as *mut _) }
-
-        render_pass.texture.delete();
-        if let Some(depth_texture) = render_pass.depth_texture {
-            depth_texture.delete();
         }
     }
 }
@@ -637,7 +557,6 @@ impl Default for Features {
 pub struct GraphicsContext {
     shaders: Vec<ShaderInternal>,
     pipelines: Vec<PipelineInternal>,
-    passes: Vec<RenderPassInternal>,
     default_framebuffer: GLuint,
     cache: GlCache,
 
@@ -661,7 +580,6 @@ impl GraphicsContext {
                 default_framebuffer,
                 shaders: vec![],
                 pipelines: vec![],
-                passes: vec![],
                 features: Default::default(),
                 cache: GlCache {
                     stored_index_buffer: 0,
@@ -899,29 +817,19 @@ impl Context {
 
     /// start rendering to the default frame buffer
     pub fn begin_default_pass(&mut self, action: PassAction) {
-        self.begin_pass(None, action);
+        self.begin_pass(action);
     }
 
     /// start rendering to an offscreen framebuffer
-    pub fn begin_pass(&mut self, pass: impl Into<Option<RenderPass>>, action: PassAction) {
-        let (framebuffer, w, h) = match pass.into() {
-            None => {
+    pub fn begin_pass(&mut self, action: PassAction) {
+        let (framebuffer, w, h) = {
                 let (screen_width, screen_height) = self.screen_size();
                 (
                     self.default_framebuffer,
                     screen_width as i32,
                     screen_height as i32,
                 )
-            }
-            Some(pass) => {
-                let pass = &self.passes[pass.0];
-                (
-                    pass.gl_fb,
-                    pass.texture.width as i32,
-                    pass.texture.height as i32,
-                )
-            }
-        };
+            };
         unsafe {
             glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
             glViewport(0, 0, w, h);
