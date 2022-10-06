@@ -2,8 +2,7 @@ use std::time::{SystemTime, Duration};
 
 use miniquad::{Context};
 
-use crate::{images::{SNAKE_HEAD, SNAKE_BODY}, pos::{Pos, FloatPos}, graphical_object::{GraphicalObject, ROTATION}};
-use super::snake_body::SnakeBody;
+use crate::{images::{SNAKE_HEAD, SNAKE_BODY}, pos::Pos, graphical_object::{GraphicalObject, ROTATION}};
 
 #[derive(PartialEq, Eq, Clone, Copy)]
 pub enum Dir 
@@ -105,7 +104,6 @@ impl Snake {
                     self.next_dir = dir;
                 }                
             }
-            Dir::None => todo!(),
         }
         
     }
@@ -123,17 +121,17 @@ impl Snake {
     pub fn draw(&mut self, ctx: &mut Context) {
         self.head.rotate(ctx, get_rotation(self.dir));
         self.head.draw(ctx, self.pos, 0.);
-        let mut shader_time = 0.0f;
+        let mut shader_time = 0.0;
         //SnakeDraw
         for b in &self.body_part
         {
-            self.body.draw(ctx, b.pos.x, shader_time);
-            shader_time == 0.2f;
+            self.body.draw(ctx, *b, shader_time);
+            shader_time += 0.2;
         }
     }
 
     fn compute_target(&mut self) {
-        match dir {
+        match self.dir {
             Dir::Left => 
             {   
                 self.pos.x = self.pos.x - 1;
@@ -150,18 +148,17 @@ impl Snake {
             {
                 self.pos.y = self.pos.y - 1;        
             }
-            Dir::None => todo!(),
         }
 
         //BODY TARGET
-        let last_x = self.pos.x;
-        let last_y = self.pos.y;
+        let mut last_x = self.pos.x;
+        let mut last_y = self.pos.y;
         for b in self.body_part.iter_mut()
         {
-            let curr_x = b.pos.x;
-            let curr_y = b.pos.y;
-            b.pos.x = last_x;
-            b.pos.y = last_y;
+            let curr_x = b.x;
+            let curr_y = b.y;
+            b.x = last_x;
+            b.y = last_y;
             last_x = curr_x;
             last_y = curr_y;
         }
@@ -171,7 +168,7 @@ impl Snake {
     pub(crate) fn eat_himself(&self) -> bool {        
         for b in &self.body_part
         {
-            if b.pos.x == self.pos.x && b.pos.y == self.pos.y
+            if b.x == self.pos.x && b.y == self.pos.y
             {
                 eprintln!("EAT TAIL");
                 return true;
@@ -187,6 +184,5 @@ fn get_rotation(dir: Dir) -> ROTATION {
         Dir::Right => ROTATION::Clockwise90,
         Dir::Up => ROTATION::None,
         Dir::Down => ROTATION::Clockwise180,
-        Dir::None => ROTATION::None,
     }
 }

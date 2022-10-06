@@ -16,8 +16,8 @@ impl Bonus {
         }
     }
     
-    pub fn draw(&mut self, ctx :&mut Context, pos: GamePos) 
+    pub fn draw(&mut self, ctx :&mut Context, pos: Pos) 
     {
-        self.graphic.draw(ctx, pos.curr.x, pos.curr.y, 0.);        
+        self.graphic.draw(ctx, pos, 0.);        
     }
 }

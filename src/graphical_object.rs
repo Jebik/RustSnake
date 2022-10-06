@@ -49,8 +49,8 @@ impl GraphicalObject {
         ctx.apply_bindings(&self.bindings);
         ctx.apply_uniforms(&Uniforms {
             offset: (
-                self.x_offset + (2. * pos.x / (SCREEN_WIDTH/self.width)) - 1.,
-                self.y_offset + (2. * pos.y / (SCREEN_HEIGHT/self.height)) - 1.,
+                self.x_offset + (2. * f32::from(pos.x) / (SCREEN_WIDTH/self.width)) - 1.,
+                self.y_offset + (2. * f32::from(pos.y) / (SCREEN_HEIGHT/self.height)) - 1.,
             ),
             time: ratio
         });

@@ -1,3 +1,5 @@
+
+#[derive(Clone, Copy)]
 pub struct Pos
 {    
     pub x:i16,

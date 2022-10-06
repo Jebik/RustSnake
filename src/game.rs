@@ -1,4 +1,4 @@
-use std::ffi::CString;
+use std::{ffi::CString, time::Duration};
 
 use miniquad::{EventHandler, Context, KeyCode, KeyMods};
 use rand::Rng;
@@ -7,9 +7,11 @@ use winapi::um::winuser::{MessageBoxA, MB_OK, MB_ICONINFORMATION};
 mod bonus;
 mod snake;
 mod background;
-mod snake_body;
+use crate::pos::Pos;
+
 use self::{snake::{Snake, Dir}, bonus::Bonus, background::Background};
 
+#[derive(Clone, Copy)]
 pub enum DifficultyLevel 
 {
     Easy,
@@ -18,15 +20,15 @@ pub enum DifficultyLevel
     Insane
 }
 
+#[derive(Clone, Copy)]
 pub struct Difficulty 
 {
     move_duration: Duration,
-    score_per_bonus:i16,
+    score_per_bonus:i32,
+    bonus_count:i16,
     level:DifficultyLevel,
     next_level_trigger:i32
 }
-
-pub pos: Pos,
 
 pub(crate) struct Game 
 {
@@ -50,7 +52,7 @@ impl Game
             difficulty: get_difficulty(DifficultyLevel::Easy),
             bonus: Bonus::new(ctx),
             bg: Background::new(ctx),
-            bonus_list : Vec::new,
+            bonus_list : Vec::new(),
             width: 25,
             height:14,
             score: 0,
@@ -64,16 +66,19 @@ impl Game
         self.snake.reset();
         self.score = 0;
         self.running = false;
-        self.difficulty = get_difficulty(Difficulty::Easy);
+        self.difficulty = get_difficulty(DifficultyLevel::Easy);
+        self.bonus_list = Vec::new();
         self.spawn_bonus();
     }
 
     fn spawn_bonus(&mut self){
-        let mut rng = rand::thread_rng();
-        let x:i16 = rng.gen_range(0..self.width);
-        let y:i16 = rng.gen_range(0..self.height);
-        self.bonus.pos.x = x;
-        self.bonus.pos.y = y;
+        while self.bonus_list.len() < self.difficulty.bonus_count as _
+        {
+            let mut rng = rand::thread_rng();
+            let x:i16 = rng.gen_range(0..self.width);
+            let y:i16 = rng.gen_range(0..self.height);
+            self.bonus_list.push(Pos{ x, y });
+        }
     }
 
     fn real_game_update(&mut self) 
@@ -88,20 +93,25 @@ impl Game
         //Check if game over.
         self.check_game_over();
         //Check if on bonus
-        if self.snake.curr.x == self.bonus.pos.x 
-            && self.snake.curr.y == self.bonus.pos.y
+        for i in 0.. self.bonus_list.len()
         {
-            //We got apple
-            self.score += self.difficulty.score_per_bonus;
-            self.get_new_difficulty();
-            self.snake.grow();
-            self.spawn_bonus();
+            let b = self.bonus_list[i];
+            if self.snake.pos.x == b.x 
+                && self.snake.pos.y == b.y
+            {
+                //We got apple
+                self.score += self.difficulty.score_per_bonus;
+                self.bonus_list.remove(i);
+                self.get_new_difficulty();
+                self.snake.grow();
+            }
         }
+        self.spawn_bonus();
     }
 
     fn check_game_over(&mut self) {
-        if self.snake.dest.x < 0 || self.snake.dest.x > self.width 
-            || self.snake.dest.y < 0 || self.snake.dest.y > self.height 
+        if self.snake.pos.x < 0 || self.snake.pos.x > self.width 
+            || self.snake.pos.y < 0 || self.snake.pos.y > self.height 
             || self.snake.eat_himself()
         {
             show_score(self.score);
@@ -110,16 +120,19 @@ impl Game
         }
     }
 
-    fn get_new_difficulty(&self) -> _ {
+    fn get_new_difficulty(&mut self) -> Difficulty {
+
+        let new_difficulty = match self.difficulty.level {
+            DifficultyLevel::Easy => DifficultyLevel::Medium ,
+            DifficultyLevel::Medium => DifficultyLevel::Hard,
+            DifficultyLevel::Hard => DifficultyLevel::Insane,
+            _ =>  self.difficulty.level
+        };
         if self.score > self.difficulty.next_level_trigger
         {
-            match self.difficulty.level {
-                DifficultyLevel::Easy => get_difficulty(DifficultyLevel::Medium),
-                DifficultyLevel::Medium => get_difficulty(DifficultyLevel::Hard),
-                DifficultyLevel::Hard => get_difficulty(DifficultyLevel::Insane),
-                _ => self.difficulty
-            }
+            return get_difficulty(new_difficulty);
         }
+        self.difficulty
     }
 }
 
@@ -129,6 +142,7 @@ fn get_difficulty(level: DifficultyLevel) -> Difficulty {
         {
             move_duration: Duration::from_millis(300),
             score_per_bonus: 1,
+            bonus_count: 4,
             level: DifficultyLevel::Easy,
             next_level_trigger:10
         },
@@ -136,6 +150,7 @@ fn get_difficulty(level: DifficultyLevel) -> Difficulty {
         {
             move_duration: Duration::from_millis(200),
             score_per_bonus: 4,
+            bonus_count: 3,
             level: DifficultyLevel::Medium,
             next_level_trigger:50
         },
@@ -143,6 +158,7 @@ fn get_difficulty(level: DifficultyLevel) -> Difficulty {
         {
             move_duration: Duration::from_millis(100),
             score_per_bonus: 6,
+            bonus_count: 2,
             level: DifficultyLevel::Hard,
             next_level_trigger:100
         },
@@ -150,6 +166,7 @@ fn get_difficulty(level: DifficultyLevel) -> Difficulty {
         {
             move_duration: Duration::from_millis(50),
             score_per_bonus: 10,
+            bonus_count: 1,
             level: DifficultyLevel::Insane,
             next_level_trigger:9999999
         },
@@ -217,9 +234,9 @@ impl EventHandler for Game
 
         //SnakeDraw
         self.snake.draw(ctx);
-        for b in self.bonus_list
+        for b in &self.bonus_list
         {
-            self.bonus.draw(ctx, b);
+            self.bonus.draw(ctx, *b);
         }
 
         ctx.end_render_pass();
