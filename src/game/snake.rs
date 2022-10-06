@@ -33,11 +33,10 @@ impl Snake {
     {
         Snake
         {
-            next_dir: Dir::None,
-            body_part: Vec::new(),
-            
-            pos:Pos { x: 12, y: 7 },
-            dir: Dir::Right,            
+            body_part: Vec::new(),   
+            dir: Dir::Right,        
+            next_dir: Dir::Right,         
+            pos:Pos { x: 12, y: 7 },    
             last_move_start:SystemTime::now(),
             
             //ForDrawing
@@ -48,10 +47,10 @@ impl Snake {
 
     pub(crate) fn reset(&mut self) {
         self.body_part = Vec::new();
-        self.next_dir = Dir::None;
+        self.dir = Dir::Right;
+        self.next_dir = Dir::Right;
         self.pos.x = 12;
         self.pos.y = 7;
-        self.dir = Dir::Right;
     }    
 
 
