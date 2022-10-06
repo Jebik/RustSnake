@@ -1,6 +1,6 @@
 use std::time::{SystemTime, Duration};
 
-use winopengl::{Context};
+use winopengl::{GraphicsContext};
 
 use crate::{game::Images::{SNAKE_HEAD, SNAKE_BODY}, pos::Pos, graphical_object::{GraphicalObject, ROTATION}, texture::{get_texture}};
 
@@ -30,7 +30,7 @@ pub struct Snake
     last_move_start: SystemTime,
 }
 impl Snake {
-    pub(crate) fn new(ctx: &mut Context) -> Snake 
+    pub(crate) fn new(ctx: &mut GraphicsContext) -> Snake 
     {
         Snake
         {
@@ -120,7 +120,7 @@ impl Snake {
         self.body_part.push(Pos{ x:-1, y: -1});
     }
     
-    pub fn draw(&mut self, ctx: &mut Context) {
+    pub fn draw(&mut self, ctx: &mut GraphicsContext) {
         self.head.rotate(ctx, get_rotation(self.dir));
         self.head.draw(ctx, self.pos);
         //SnakeDraw

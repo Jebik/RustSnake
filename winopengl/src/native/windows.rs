@@ -1,7 +1,7 @@
 use crate::{
     conf::Conf,
     native::NativeDisplayData,
-    Context, EventHandler, GraphicsContext,
+    GraphicsContext, EventHandler,
 };
 
 use winapi::{
@@ -18,7 +18,6 @@ use winapi::{
     },
 };
 
-mod clipboard;
 mod keycodes;
 mod libopengl32;
 mod wgl;
@@ -310,7 +309,7 @@ impl Display {
 
 pub fn run<F>(conf: &Conf, f: F)
 where
-    F: 'static + FnOnce(&mut Context) -> Box<dyn EventHandler>,
+    F: 'static + FnOnce(&mut GraphicsContext) -> Box<dyn EventHandler>,
 {
     unsafe {
         let (wnd, dc) = create_window(

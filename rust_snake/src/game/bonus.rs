@@ -1,4 +1,4 @@
-use winopengl::Context;
+use winopengl::GraphicsContext;
 use crate::game::Images::{SNAKE_BONUS};
 use crate::pos::Pos;
 use crate::graphical_object::GraphicalObject;
@@ -9,7 +9,7 @@ pub(crate) struct Bonus
     graphic: GraphicalObject
 }
 impl Bonus {    
-    pub(crate) fn new(ctx: &mut Context) -> Bonus 
+    pub(crate) fn new(ctx: &mut GraphicsContext) -> Bonus 
     {
         Bonus 
         {
@@ -17,7 +17,7 @@ impl Bonus {
         }
     }
     
-    pub fn draw(&mut self, ctx :&mut Context, pos: Pos) 
+    pub fn draw(&mut self, ctx :&mut GraphicsContext, pos: Pos) 
     {
         self.graphic.draw(ctx, pos);        
     }

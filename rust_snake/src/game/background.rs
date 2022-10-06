@@ -1,13 +1,13 @@
 use std::{fs::File, io::{BufReader, Read}};
 
-use winopengl::Context;
+use winopengl::GraphicsContext;
 use crate::{graphical_object::{GraphicalObject}, pos::Pos, texture::{TextureData, get_texture}};
 pub(crate) struct Background
 {
     graphic: GraphicalObject
 }
 impl Background {    
-    pub(crate) fn new(ctx: &mut Context) -> Background 
+    pub(crate) fn new(ctx: &mut GraphicsContext) -> Background 
     { 
         //BG NOIR SI PAS D'IMAGE SIMPLE VECTEUR u8 de Size 1600x896x4
         let open_file = File::open("./Map/Strasbourg.jpg");
@@ -34,7 +34,7 @@ impl Background {
         }
     }
     
-    pub fn draw(&mut self, ctx: &mut Context)
+    pub fn draw(&mut self, ctx: &mut GraphicsContext)
     {
         self.graphic.draw(ctx, Pos{ x: 0, y: 0});        
     }

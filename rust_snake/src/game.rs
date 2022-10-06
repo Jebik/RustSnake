@@ -1,6 +1,6 @@
 use std::{ffi::CString, time::Duration};
 
-use winopengl::{EventHandler, Context, KeyCode};
+use winopengl::{EventHandler, GraphicsContext, KeyCode};
 use rand::Rng;
 use winapi::um::winuser::{MessageBoxA, MB_OK, MB_ICONINFORMATION, SetWindowTextA};
 
@@ -52,7 +52,7 @@ pub(crate) struct Game
 }
 impl Game
 {
-    pub(crate) fn new(ctx: &mut Context) -> Game
+    pub(crate) fn new(ctx: &mut GraphicsContext) -> Game
     {
         let mut g = Game
         {
@@ -219,7 +219,7 @@ fn show_score(score: i32) {
 
 impl EventHandler for Game 
 {
-    fn key_down_event(&mut self, ctx: &mut Context, _keycode: KeyCode) 
+    fn key_down_event(&mut self, ctx: &mut GraphicsContext, _keycode: KeyCode) 
     {
         if _keycode == KeyCode::Escape
         { 
@@ -249,7 +249,7 @@ impl EventHandler for Game
         }
     }
 
-    fn update(&mut self, _ctx: &mut Context) 
+    fn update(&mut self, _ctx: &mut GraphicsContext) 
     { 
         if self.running
         {
@@ -257,7 +257,7 @@ impl EventHandler for Game
         }
     }
 
-    fn draw(&mut self, ctx: &mut Context) 
+    fn draw(&mut self, ctx: &mut GraphicsContext) 
     {
         ctx.begin_default_pass(Default::default());
 

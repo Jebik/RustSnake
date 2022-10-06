@@ -1,4 +1,4 @@
-use crate::Context;
+use crate::GraphicsContext;
 
 #[derive(Debug, Copy, Clone, PartialEq, Hash, Eq)]
 pub enum KeyCode {
@@ -12,8 +12,8 @@ pub enum KeyCode {
 }
 
 pub trait EventHandler {
-    fn update(&mut self, _ctx: &mut Context);
-    fn draw(&mut self, _ctx: &mut Context);
+    fn update(&mut self, _ctx: &mut GraphicsContext);
+    fn draw(&mut self, _ctx: &mut GraphicsContext);
 
-    fn key_down_event(&mut self, _ctx: &mut Context, _keycode: KeyCode) {}
+    fn key_down_event(&mut self, _ctx: &mut GraphicsContext, _keycode: KeyCode) {}
 }

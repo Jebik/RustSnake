@@ -1,7 +1,7 @@
 use std::time::SystemTime;
 
 use winopengl::{
-    Bindings, Buffer, BufferLayout, BufferType, Context, Pipeline, Shader, Texture,
+    Bindings, Buffer, BufferLayout, BufferType, GraphicsContext, Pipeline, Shader, Texture,
     VertexAttribute, VertexFormat, TextureParams, ShaderMeta, UniformBlockLayout, UniformDesc,
 };
 
@@ -30,14 +30,14 @@ impl GraphicalObject {
         self.time = SystemTime::now();
     }
 
-    pub fn rotate(&mut self, ctx: &mut Context, rotation: ROTATION)
+    pub fn rotate(&mut self, ctx: &mut GraphicsContext, rotation: ROTATION)
     {
         let square_vertices: [Vertex; 4] = get_rot_vertex(rotation, self.width, self.height);    
         let vertex_buffer = Buffer::immutable(ctx, BufferType::VertexBuffer, &square_vertices);
         self.bindings.vertex_buffers = vec![vertex_buffer];
     }
 
-    pub fn draw(&mut self, ctx: &mut Context, pos:Pos) {
+    pub fn draw(&mut self, ctx: &mut GraphicsContext, pos:Pos) {
         ctx.apply_pipeline(&self.pipeline);
         ctx.apply_bindings(&self.bindings);
         ctx.apply_uniforms(&Uniforms {
@@ -49,7 +49,7 @@ impl GraphicalObject {
         ctx.draw(0, 6, 1);
     }
 
-    pub(crate) fn new(ctx: &mut Context, texture: TextureData, body: bool) -> GraphicalObject 
+    pub(crate) fn new(ctx: &mut GraphicsContext, texture: TextureData, body: bool) -> GraphicalObject 
     { 
         let widhtf = f32::from(texture.width);
         let heightf = f32::from(texture.height);
@@ -70,7 +70,7 @@ impl GraphicalObject {
     }       
 }
 
-fn init_bindings(ctx: &mut Context, texture: TextureData, ) -> Bindings {
+fn init_bindings(ctx: &mut GraphicsContext, texture: TextureData, ) -> Bindings {
     let widthf = f32::from(texture.width);
     let heightf = f32::from(texture.height);
     let square_vertices: [Vertex; 4] = get_rot_vertex(ROTATION::None, widthf, heightf);
@@ -96,7 +96,7 @@ fn init_bindings(ctx: &mut Context, texture: TextureData, ) -> Bindings {
     }
 }
 
-fn init_pipeline(ctx: &mut Context, body: bool) -> Pipeline {    
+fn init_pipeline(ctx: &mut GraphicsContext, body: bool) -> Pipeline {    
     let vertex_shader:&str = std::str::from_utf8(include_bytes!("./shaders/shader.vs")).unwrap();
     let mut fragment_shader = std::str::from_utf8(include_bytes!("./shaders/shader.fs")).unwrap();
     if body
