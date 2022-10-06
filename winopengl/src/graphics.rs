@@ -403,24 +403,6 @@ impl GlCache {
     }
 }
 
-pub enum PassAction {
-    Nothing,
-    Clear {
-        color: Option<(f32, f32, f32, f32)>,
-        depth: Option<f32>,
-        stencil: Option<i32>,
-    },
-}
-impl Default for PassAction {
-    fn default() -> PassAction {
-        PassAction::Clear {
-            color: Some((0.0, 0.0, 0.0, 0.0)),
-            depth: Some(1.),
-            stencil: None,
-        }
-    }
-}
-
 pub const MAX_VERTEX_ATTRIBUTES: usize = 16;
 pub const MAX_SHADERSTAGE_IMAGES: usize = 12;
 
@@ -634,32 +616,16 @@ impl Context {
         }
     }
 
-    pub fn clear(
-        &self,
-        color: Option<(f32, f32, f32, f32)>,
-        depth: Option<f32>,
-        stencil: Option<i32>,
-    ) {
+    pub fn clear(&self) {
         let mut bits = 0;
-        if let Some((r, g, b, a)) = color {
-            bits |= GL_COLOR_BUFFER_BIT;
-            unsafe {
-                glClearColor(r, g, b, a);
-            }
+        bits |= GL_COLOR_BUFFER_BIT;
+        unsafe {
+            glClearColor(0.0, 0.0, 0.0, 0.0)
         }
 
-        if let Some(v) = depth {
-            bits |= GL_DEPTH_BUFFER_BIT;
-            unsafe {
-                glClearDepthf(v);
-            }
-        }
-
-        if let Some(v) = stencil {
-            bits |= GL_STENCIL_BUFFER_BIT;
-            unsafe {
-                glClearStencil(v);
-            }
+        bits |= GL_DEPTH_BUFFER_BIT;
+        unsafe {
+            glClearDepthf(1.);
         }
 
         if bits != 0 {
@@ -670,27 +636,18 @@ impl Context {
     }
 
     /// start rendering to the default frame buffer
-    pub fn begin_default_pass(&mut self, action: PassAction) {
-        self.begin_pass(action);
+    pub fn begin_default_pass(&mut self) {
+        self.begin_pass();
     }
 
     /// start rendering to an offscreen framebuffer
-    pub fn begin_pass(&mut self, action: PassAction) {
+    pub fn begin_pass(&mut self) {
         unsafe {
             glBindFramebuffer(GL_FRAMEBUFFER, self.default_framebuffer);
             glViewport(0, 0, self.width, self.height);
             glScissor(0, 0, self.width, self.height);
         }
-        match action {
-            PassAction::Nothing => {}
-            PassAction::Clear {
-                color,
-                depth,
-                stencil,
-            } => {
-                self.clear(color, depth, stencil);
-            }
-        }
+        self.clear();
     }
 
     pub fn end_render_pass(&mut self) {
@@ -706,14 +663,6 @@ impl Context {
         self.cache.clear_texture_bindings();
     }
 
-    /// Draw elements using currently applied bindings and pipeline.
-    ///
-    /// + `base_element` specifies starting offset in `index_buffer`.
-    /// + `num_elements` specifies length of the slice of `index_buffer` to draw.
-    /// + `num_instances` specifies how many instances should be rendered.
-    ///
-    /// NOTE: num_instances > 1 might be not supported by the GPU (gl2.1 and gles2).
-    /// `features.instancing` check is required.
     pub fn draw(&self, base_element: i32, num_elements: i32, num_instances: i32) {
         assert!(
             self.cache.cur_pipeline.is_some(),
@@ -1049,41 +998,7 @@ pub struct PipelineParams {
     pub depth_test: Comparison,
     pub depth_write: bool,
     pub depth_write_offset: Option<(f32, f32)>,
-    /// Color (RGB) blend function. If None - blending will be disabled for this pipeline.
-    /// Usual use case to get alpha-blending:
-    ///```
-    ///# use miniquad::{PipelineParams, BlendState, BlendValue, BlendFactor, Equation};
-    ///PipelineParams {
-    ///    color_blend: Some(BlendState::new(
-    ///        Equation::Add,
-    ///        BlendFactor::Value(BlendValue::SourceAlpha),
-    ///        BlendFactor::OneMinusValue(BlendValue::SourceAlpha))
-    ///    ),
-    ///    ..Default::default()
-    ///};
-    ///```
     pub color_blend: Option<BlendState>,
-    /// Alpha blend function. If None - alpha will be blended with same equation than RGB colors.
-    /// One of possible separate alpha channel blend settings is to avoid blending with WebGl background.
-    /// On webgl canvas's resulting alpha channel will be used to blend the whole canvas background.
-    /// To avoid modifying only alpha channel, but keep usual transparency:
-    ///```
-    ///# use miniquad::{PipelineParams, BlendState, BlendValue, BlendFactor, Equation};
-    ///PipelineParams {
-    ///    color_blend: Some(BlendState::new(
-    ///        Equation::Add,
-    ///        BlendFactor::Value(BlendValue::SourceAlpha),
-    ///        BlendFactor::OneMinusValue(BlendValue::SourceAlpha))
-    ///    ),
-    ///    alpha_blend: Some(BlendState::new(
-    ///        Equation::Add,
-    ///        BlendFactor::Zero,
-    ///        BlendFactor::One)
-    ///    ),
-    ///    ..Default::default()
-    ///};
-    ///```
-    /// The same results may be achieved with ColorMask(true, true, true, false)
     pub alpha_blend: Option<BlendState>,
     pub stencil_test: Option<StencilState>,
     pub color_write: ColorMask,
@@ -1092,7 +1007,6 @@ pub struct PipelineParams {
 
 #[derive(Copy, Clone, Debug)]
 pub struct Pipeline(usize);
-
 impl Default for PipelineParams {
     fn default() -> PipelineParams {
         PipelineParams {
@@ -1252,19 +1166,8 @@ struct PipelineInternal {
 /// Geometry bindings
 #[derive(Clone, Debug)]
 pub struct Bindings {
-    /// Vertex buffers. Data contained in the buffer must match layout
-    /// specified in the `Pipeline`.
-    ///
-    /// Most commonly vertex buffer will contain `(x,y,z,w)` coordinates of the
-    /// vertex in 3d space, as well as `(u,v)` coordinates that map the vertex
-    /// to some position in the corresponding `Texture`.
     pub vertex_buffers: Vec<Buffer>,
-    /// Index buffer which instructs the GPU in which order to draw vertices
-    /// from a vertex buffer, with each subsequent 3 indices forming a
-    /// triangle.
     pub index_buffer: Buffer,
-    /// Textures to be used with when drawing the geometry in the fragment
-    /// shader.
     pub images: Vec<Texture>,
 }
 
@@ -1274,34 +1177,11 @@ pub enum BufferType {
     IndexBuffer,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum Usage {
-    Immutable,
-    Dynamic,
-    Stream,
-}
-
-fn gl_buffer_target(buffer_type: &BufferType) -> GLenum {
-    match buffer_type {
-        BufferType::VertexBuffer => GL_ARRAY_BUFFER,
-        BufferType::IndexBuffer => GL_ELEMENT_ARRAY_BUFFER,
-    }
-}
-
-fn gl_usage(usage: &Usage) -> GLenum {
-    match usage {
-        Usage::Immutable => GL_STATIC_DRAW,
-        Usage::Dynamic => GL_DYNAMIC_DRAW,
-        Usage::Stream => GL_STREAM_DRAW,
-    }
-}
-
 #[derive(Clone, Copy, Debug)]
 pub struct Buffer {
     gl_buf: GLuint,
     index_type: Option<IndexType>,
 }
-
 impl Buffer {
     pub fn immutable<T>(ctx: &mut Context, buffer_type: BufferType, data: &[T]) -> Buffer {
         let index_type = if buffer_type == BufferType::IndexBuffer {
@@ -1310,8 +1190,11 @@ impl Buffer {
             None
         };
 
-        let gl_target = gl_buffer_target(&buffer_type);
-        let gl_usage = gl_usage(&Usage::Immutable);
+        let gl_target = match buffer_type {
+            BufferType::VertexBuffer => GL_ARRAY_BUFFER,
+            BufferType::IndexBuffer => GL_ELEMENT_ARRAY_BUFFER,
+        };
+        let gl_usage = GL_STATIC_DRAW;
         let size = mem::size_of_val(data);
         let mut gl_buf: u32 = 0;
 

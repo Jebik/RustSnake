@@ -259,7 +259,7 @@ impl EventHandler for Game
 
     fn draw(&mut self, ctx: &mut GraphicsContext) 
     {
-        ctx.begin_default_pass(Default::default());
+        ctx.begin_default_pass();
 
         self.bg.draw(ctx);
 
