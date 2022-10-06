@@ -6,6 +6,8 @@ use miniquad::{
 };
 use webp::Decoder;
 
+use crate::pos::Pos;
+
 const SCREEN_WIDTH: f32 = 1600.;
 const SCREEN_HEIGHT: f32 = 896.;
 
@@ -39,15 +41,16 @@ impl GraphicalObject {
         self.bindings.vertex_buffers = vec![vertex_buffer];
     }
 
-    pub fn draw(&mut self, ctx: &mut Context, x: f32, y: f32) {
+    pub fn draw(&mut self, ctx: &mut Context, pos:Pos, shader_time:f32) {
         let delta = self.time.elapsed().unwrap_or(Duration::from_secs(0)).as_secs_f32() % 2.;
-        let ratio = delta/2.;
+        let ratio = (delta/2. + shader_time)%1.;
+
         ctx.apply_pipeline(&self.pipeline);
         ctx.apply_bindings(&self.bindings);
         ctx.apply_uniforms(&Uniforms {
             offset: (
-                self.x_offset + (2. * x / (SCREEN_WIDTH/self.width)) - 1.,
-                self.y_offset + (2. * y / (SCREEN_HEIGHT/self.height)) - 1.,
+                self.x_offset + (2. * pos.x / (SCREEN_WIDTH/self.width)) - 1.,
+                self.y_offset + (2. * pos.y / (SCREEN_HEIGHT/self.height)) - 1.,
             ),
             time: ratio
         });

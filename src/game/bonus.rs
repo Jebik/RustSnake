@@ -5,7 +5,6 @@ use crate::graphical_object::GraphicalObject;
 
 pub(crate) struct Bonus
 {
-    pub pos: Pos,
     graphic: GraphicalObject
 }
 impl Bonus {    
@@ -13,13 +12,12 @@ impl Bonus {
     {
         Bonus 
         {
-            pos: Pos { x: 0, y: 0 },
             graphic: GraphicalObject::new(ctx, SNAKE_BONUS, false) 
         }
     }
     
-    pub fn draw(&mut self, ctx :&mut Context) 
+    pub fn draw(&mut self, ctx :&mut Context, pos: GamePos) 
     {
-        self.graphic.draw(ctx, f32::from(self.pos.x), f32::from(self.pos.y));        
+        self.graphic.draw(ctx, pos.curr.x, pos.curr.y, 0.);        
     }
 }
