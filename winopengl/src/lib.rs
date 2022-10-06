@@ -35,11 +35,6 @@ impl Context {
     pub fn order_quit(&mut self) {
         self.display_mut().order_quit();
     }
-
-    /// Set the application's window size.
-    pub fn set_window_size(&mut self, new_width: u32, new_height: u32) {
-        self.display_mut().set_window_size(new_width, new_height);
-    }
 }
 
 /// Start miniquad.

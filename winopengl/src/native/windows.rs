@@ -26,9 +26,7 @@ mod wgl;
 use libopengl32::LibOpengl32;
 
 pub(crate) struct Display {
-    fullscreen: bool,
     dpi_aware: bool,
-    window_resizable: bool,
     cursor_grabbed: bool,
     display_data: NativeDisplayData,
     content_scale: f32,
@@ -52,48 +50,6 @@ impl crate::native::NativeDisplay for Display {
         self.display_data.quit_ordered = true;
     }
 
-    fn set_window_size(&mut self, new_width: u32, new_height: u32) {
-        let mut x = 0;
-        let mut y = 0;
-        let mut final_new_width = new_width;
-        let mut final_new_height = new_height;
-
-        let mut rect: RECT = unsafe { std::mem::zeroed() };
-        if unsafe { GetClientRect(self.wnd, &mut rect as *mut _ as _) } != 0 {
-            x = rect.left;
-            y = rect.bottom;
-        }
-
-        rect.right = (rect.left + new_width as i32) as _;
-        rect.top = (rect.bottom - new_height as i32) as _;
-
-        let win_style = get_win_style(self.fullscreen, self.window_resizable);
-        let win_style_ex: DWORD = unsafe { GetWindowLongA(self.wnd, GWL_EXSTYLE) as _ };
-        if unsafe {
-            AdjustWindowRectEx(
-                &mut rect as *mut _ as _,
-                win_style,
-                false as _,
-                win_style_ex,
-            )
-        } != 0
-        {
-            final_new_width = (rect.right - rect.left) as _;
-            final_new_height = (rect.bottom - rect.top) as _;
-        }
-
-        unsafe {
-            SetWindowPos(
-                self.wnd,
-                HWND_TOP,
-                x,
-                y,
-                final_new_width as i32,
-                final_new_height as i32,
-                SWP_NOMOVE,
-            )
-        };
-    }
     fn as_any(&mut self) -> &mut dyn std::any::Any {
         self
     }
@@ -103,21 +59,6 @@ struct WindowPayload {
     event_handler: Box<dyn EventHandler>,
     context: GraphicsContext,
     display: Display,
-}
-
-fn get_win_style(is_fullscreen: bool, is_resizable: bool) -> DWORD {
-    if is_fullscreen {
-        WS_POPUP | WS_SYSMENU | WS_VISIBLE
-    } else {
-        let mut win_style: DWORD =
-            WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
-
-        if is_resizable {
-            win_style |= WS_MAXIMIZEBOX | WS_SIZEBOX;
-        }
-
-        win_style
-    }
 }
 
 unsafe fn update_clip_rect(hwnd: HWND) {
@@ -420,9 +361,7 @@ where
 
         let (msg_wnd, msg_dc) = create_msg_window();
         let mut display = Display {
-            fullscreen: false,
             dpi_aware: false,
-            window_resizable: false,
             cursor_grabbed: false,
             content_scale: 1.,
             mouse_scale: 1.,
