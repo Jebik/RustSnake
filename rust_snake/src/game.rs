@@ -102,6 +102,7 @@ impl Game
             {
                 //We got apple
                 self.score += self.difficulty.score_per_bonus;
+                self.snake.start();
                 self.update_title();
                 self.bonus_list.remove(i);
                 self.get_new_difficulty();
@@ -221,10 +222,10 @@ impl EventHandler for Game
         if !self.running
         {
             match _keycode {
-                KeyCode::Up => self.running = false,
-                KeyCode::Left => self.running = false,
-                KeyCode::Down => self.running = false,
-                KeyCode::Right => self.running = false,                
+                KeyCode::Up => self.running = true,
+                KeyCode::Left => self.running = true,
+                KeyCode::Down => self.running = true,
+                KeyCode::Right => self.running = true,                
                 _ => ()      
             }
         }

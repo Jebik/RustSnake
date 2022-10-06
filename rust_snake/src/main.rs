@@ -1,6 +1,5 @@
 use std::ffi::CString;
 
-use miniquad::conf::Conf;
 use winapi::um::winuser::{MessageBoxA, MB_ICONINFORMATION, MB_OK};
 mod graphical_object;
 mod pos;
@@ -30,7 +29,7 @@ fn main() {
         );
     }
 
-    miniquad::start(
+    winopengl::start(
         Conf {
             window_title: "AmbuSnake".to_string(),
             window_width: 1600,
