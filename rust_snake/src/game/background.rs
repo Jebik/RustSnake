@@ -1,6 +1,6 @@
 use std::{fs::File, io::{BufReader, Read}};
 
-use miniquad::Context;
+use winopengl::Context;
 use crate::{graphical_object::{GraphicalObject}, pos::Pos};
 pub(crate) struct Background
 {

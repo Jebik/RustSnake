@@ -175,7 +175,7 @@ impl Default for Conf {
             fullscreen: false,
             sample_count: 1,
             window_resizable: true,
-            icon: Some(Icon::miniquad_logo()),
+            icon: todo!(),
             platform: Default::default(),
         }
     }

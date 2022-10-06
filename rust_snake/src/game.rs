@@ -1,6 +1,6 @@
 use std::{ffi::CString, time::Duration};
 
-use miniquad::{EventHandler, Context, KeyCode, KeyMods};
+use winopengl::{EventHandler, Context, KeyCode, KeyMods};
 use rand::Rng;
 use winapi::um::winuser::{MessageBoxA, MB_OK, MB_ICONINFORMATION, SetWindowTextA};
 

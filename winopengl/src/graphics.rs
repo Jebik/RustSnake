@@ -5,6 +5,7 @@ mod texture;
 use std::{error::Error, fmt::Display};
 
 pub use texture::{FilterMode, Texture, TextureAccess, TextureFormat, TextureParams, TextureWrap};
+use crate::graphics::GraphicsContext as Context;
 
 use crate::gl::*;
 

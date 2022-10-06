@@ -1,6 +1,7 @@
 use std::ffi::CString;
 
 use winapi::um::winuser::{MessageBoxA, MB_ICONINFORMATION, MB_OK};
+use winopengl::conf::Conf;
 mod graphical_object;
 mod pos;
 mod images;

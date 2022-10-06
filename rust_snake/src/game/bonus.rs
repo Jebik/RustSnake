@@ -1,4 +1,4 @@
-use miniquad::Context;
+use winopengl::Context;
 use crate::images::{SNAKE_BONUS};
 use crate::pos::Pos;
 use crate::graphical_object::GraphicalObject;

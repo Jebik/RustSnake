@@ -1,4 +1,4 @@
-use winopengl::{
+use crate::{
     conf::{Conf, Icon},
     event::{KeyMods, MouseButton},
     native::NativeDisplayData,
@@ -26,8 +26,6 @@ mod libopengl32;
 mod wgl;
 
 use libopengl32::LibOpengl32;
-
-use crate::winopengl;
 
 pub(crate) struct Display {
     fullscreen: bool,

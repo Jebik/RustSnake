@@ -1,6 +1,6 @@
 use std::time::{SystemTime, Duration};
 
-use miniquad::{Context};
+use winopengl::{Context};
 
 use crate::{images::{SNAKE_HEAD, SNAKE_BODY}, pos::Pos, graphical_object::{GraphicalObject, ROTATION}};
 

@@ -1,6 +1,5 @@
-use winopengl::{native::gl::*, native::*, conf::Context};
-
-use crate::winopengl;
+use crate::gl::*;
+use crate::graphics::GraphicsContext as Context;
 
 #[derive(Clone, Copy, Debug, PartialEq, Hash)]
 pub struct Texture {
@@ -345,13 +344,13 @@ impl Texture {
         let mut fbo = 0;
         unsafe {
             let mut binded_fbo: i32 = 0;
-            glGetIntegerv(gl::GL_DRAW_FRAMEBUFFER_BINDING, &mut binded_fbo);
+            glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &mut binded_fbo);
             glGenFramebuffers(1, &mut fbo);
-            glBindFramebuffer(gl::GL_FRAMEBUFFER, fbo);
+            glBindFramebuffer(GL_FRAMEBUFFER, fbo);
             glFramebufferTexture2D(
-                gl::GL_FRAMEBUFFER,
-                gl::GL_COLOR_ATTACHMENT0,
-                gl::GL_TEXTURE_2D,
+                GL_FRAMEBUFFER,
+                GL_COLOR_ATTACHMENT0,
+                GL_TEXTURE_2D,
                 self.texture,
                 0,
             );
@@ -366,7 +365,7 @@ impl Texture {
                 bytes.as_mut_ptr() as _,
             );
 
-            glBindFramebuffer(gl::GL_FRAMEBUFFER, binded_fbo as _);
+            glBindFramebuffer(GL_FRAMEBUFFER, binded_fbo as _);
             glDeleteFramebuffers(1, &fbo);
         }
     }

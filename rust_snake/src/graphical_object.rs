@@ -1,6 +1,6 @@
 use std::time::{SystemTime, Duration};
 
-use miniquad::{
+use winopengl::{
     Bindings, Buffer, BufferLayout, BufferType, Context, Pipeline, Shader, Texture,
     VertexAttribute, VertexFormat, TextureParams, ShaderMeta, UniformBlockLayout, UniformDesc, UniformType,
 };
@@ -99,9 +99,9 @@ fn init_bindings(ctx: &mut Context, data: &[u8], width: u16, height: u16) -> Bin
 
     let param = TextureParams
     {
-        format: miniquad::TextureFormat::RGB8,
-        wrap: miniquad::TextureWrap::Clamp,
-        filter: miniquad::FilterMode::Linear,
+        format: winopengl::TextureFormat::RGB8,
+        wrap: winopengl::TextureWrap::Clamp,
+        filter: winopengl::FilterMode::Linear,
         width: width as _,
         height: height as _,
     };
