@@ -1,8 +1,10 @@
 use std::ffi::CString;
 
+use game::{SCREEN_HEIGHT, SCREEN_WIDTH};
 use winapi::um::winuser::{MessageBoxA, MB_ICONINFORMATION, MB_OK};
 use winopengl::conf::Conf;
 mod graphical_object;
+mod texture;
 mod pos;
 mod images;
 mod game;
@@ -33,8 +35,8 @@ fn main() {
     winopengl::start(
         Conf {
             window_title: "AmbuSnake".to_string(),
-            window_width: 1600,
-            window_height: 896,
+            window_width: SCREEN_WIDTH as _,
+            window_height: SCREEN_HEIGHT as _,
             window_resizable: false,
             fullscreen: false,
             .. Default::default()

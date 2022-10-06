@@ -26,30 +26,9 @@ impl Default for NativeDisplayData {
 
 pub trait NativeDisplay: std::any::Any {
     fn screen_size(&self) -> (f32, f32);
-    fn dpi_scale(&self) -> f32;
-    fn high_dpi(&self) -> bool;
     fn order_quit(&mut self);
-    fn request_quit(&mut self);
-    fn cancel_quit(&mut self);
 
-    fn set_cursor_grab(&mut self, _grab: bool);
-    fn show_mouse(&mut self, _shown: bool);
-    fn set_mouse_cursor(&mut self, _cursor_icon: crate::CursorIcon);
     fn set_window_size(&mut self, _new_width: u32, _new_height: u32);
-    fn set_fullscreen(&mut self, _fullscreen: bool);
-    fn clipboard_get(&mut self) -> Option<String>;
-    fn clipboard_set(&mut self, _data: &str);
-    fn dropped_file_count(&mut self) -> usize {
-        0
-    }
-    fn dropped_file_bytes(&mut self, _index: usize) -> Option<Vec<u8>> {
-        None
-    }
-    fn dropped_file_path(&mut self, _index: usize) -> Option<std::path::PathBuf> {
-        None
-    }
-    fn show_keyboard(&mut self, _show: bool) {}
-
     fn as_any(&mut self) -> &mut dyn std::any::Any;
 }
 

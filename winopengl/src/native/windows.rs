@@ -1,16 +1,14 @@
 use crate::{
     conf::{Conf, Icon},
-    event::{KeyMods, MouseButton},
     native::NativeDisplayData,
-    Context, CursorIcon, EventHandler, GraphicsContext,
+    Context, EventHandler, GraphicsContext,
 };
 
 use winapi::{
     shared::{
-        minwindef::{DWORD, HINSTANCE, HIWORD, LOWORD, LPARAM, LRESULT, UINT, WPARAM},
+        minwindef::{DWORD, HINSTANCE, HIWORD, LPARAM, LRESULT, UINT, WPARAM},
         ntdef::{HRESULT, NULL},
-        windef::{HCURSOR, HDC, HICON, HMONITOR, HWND, POINT, RECT},
-        windowsx::{GET_X_LPARAM, GET_Y_LPARAM},
+        windef::{HDC, HICON, HMONITOR, HWND, POINT, RECT},
     },
     um::{
         libloaderapi::{FreeLibrary, GetModuleHandleW, GetProcAddress, LoadLibraryA},
@@ -32,15 +30,10 @@ pub(crate) struct Display {
     dpi_aware: bool,
     window_resizable: bool,
     cursor_grabbed: bool,
-    iconified: bool,
     display_data: NativeDisplayData,
     content_scale: f32,
     window_scale: f32,
     mouse_scale: f32,
-    user_cursor: bool,
-    mouse_x: f32,
-    mouse_y: f32,
-    cursor: HCURSOR,
     libopengl32: LibOpengl32,
     _msg_wnd: HWND,
     msg_dc: HDC,
@@ -55,44 +48,10 @@ impl crate::native::NativeDisplay for Display {
             self.display_data.screen_height as _,
         )
     }
-    fn dpi_scale(&self) -> f32 {
-        self.content_scale
-    }
-    fn high_dpi(&self) -> bool {
-        self.content_scale != 1.
-    }
     fn order_quit(&mut self) {
         self.display_data.quit_ordered = true;
     }
-    fn request_quit(&mut self) {
-        self.display_data.quit_requested = true;
-    }
-    fn cancel_quit(&mut self) {
-        self.display_data.quit_requested = false;
-    }
 
-    fn set_cursor_grab(&mut self, _grab: bool) {}
-    fn show_mouse(&mut self, _shown: bool) {}
-    fn set_mouse_cursor(&mut self, cursor_icon: CursorIcon) {
-        let cursor_name = match cursor_icon {
-            CursorIcon::Default => IDC_ARROW,
-            CursorIcon::Help => IDC_HELP,
-            CursorIcon::Pointer => IDC_HAND,
-            CursorIcon::Wait => IDC_WAIT,
-            CursorIcon::Crosshair => IDC_CROSS,
-            CursorIcon::Text => IDC_IBEAM,
-            CursorIcon::Move => IDC_SIZEALL,
-            CursorIcon::NotAllowed => IDC_NO,
-            CursorIcon::EWResize => IDC_SIZEWE,
-            CursorIcon::NSResize => IDC_SIZENS,
-            CursorIcon::NESWResize => IDC_SIZENESW,
-            CursorIcon::NWSEResize => IDC_SIZENWSE,
-        };
-        self.cursor = unsafe { LoadCursorW(NULL as _, cursor_name) };
-        unsafe { SetCursor(self.cursor) };
-
-        self.user_cursor = cursor_icon != CursorIcon::Default;
-    }
     fn set_window_size(&mut self, new_width: u32, new_height: u32) {
         let mut x = 0;
         let mut y = 0;
@@ -134,47 +93,6 @@ impl crate::native::NativeDisplay for Display {
                 SWP_NOMOVE,
             )
         };
-    }
-
-    fn set_fullscreen(&mut self, fullscreen: bool) {
-        self.fullscreen = fullscreen as _;
-
-        let win_style: DWORD = get_win_style(self.fullscreen, self.window_resizable);
-
-        unsafe {
-            SetWindowLongPtrA(self.wnd, GWL_STYLE, win_style as _);
-
-            if self.fullscreen {
-                SetWindowPos(
-                    self.wnd,
-                    HWND_TOP,
-                    0,
-                    0,
-                    GetSystemMetrics(SM_CXSCREEN),
-                    GetSystemMetrics(SM_CYSCREEN),
-                    SWP_FRAMECHANGED,
-                );
-            } else {
-                SetWindowPos(
-                    self.wnd,
-                    HWND_TOP,
-                    0,
-                    0,
-                    // this is probably not correct: with high dpi content_width and window_width are actually different..
-                    self.display_data.screen_width,
-                    self.display_data.screen_height,
-                    SWP_FRAMECHANGED,
-                );
-            }
-
-            ShowWindow(self.wnd, SW_SHOW);
-        };
-    }
-    fn clipboard_get(&mut self) -> Option<String> {
-        unsafe { clipboard::get_clipboard_text() }
-    }
-    fn clipboard_set(&mut self, data: &str) {
-        unsafe { clipboard::set_clipboard_text(data) }
     }
     fn as_any(&mut self) -> &mut dyn std::any::Any {
         self
@@ -230,24 +148,6 @@ unsafe fn update_clip_rect(hwnd: HWND) {
     ClipCursor(&mut rect as *mut _ as _);
 }
 
-unsafe fn key_mods() -> KeyMods {
-    let mut mods = KeyMods::default();
-
-    if GetKeyState(VK_SHIFT) as u32 & (1u32 << 31) != 0 {
-        mods.shift = true;
-    }
-    if GetKeyState(VK_CONTROL) as u32 & (1u32 << 31) != 0 {
-        mods.ctrl = true;
-    }
-    if GetKeyState(VK_MENU) as u32 & (1u32 << 31) != 0 {
-        mods.alt = true;
-    }
-    if (GetKeyState(VK_LWIN) | GetKeyState(VK_RWIN)) as u32 & (1u32 << 31) != 0 {
-        mods.logo = true;
-    }
-
-    mods
-}
 
 unsafe extern "system" fn win32_wndproc(
     hwnd: HWND,
@@ -267,227 +167,18 @@ unsafe extern "system" fn win32_wndproc(
 
     match umsg {
         WM_CLOSE => {
-            // only give user a chance to intervene when sapp_quit() wasn't already called
-            if !display.display_data.quit_ordered {
-                // if window should be closed and event handling is enabled, give user code
-                // a change to intervene via sapp_cancel_quit()
-                display.display_data.quit_requested = true;
-                event_handler.quit_requested_event(context.with_display(display));
-                // if user code hasn't intervened, quit the app
-                if display.display_data.quit_requested {
-                    display.display_data.quit_ordered = true;
-                }
-            }
-            if display.display_data.quit_ordered {
-                PostQuitMessage(0);
-            }
+            PostQuitMessage(0);
             return 0;
         }
-        WM_SYSCOMMAND => {
-            match wparam & 0xFFF0 {
-                SC_SCREENSAVE | SC_MONITORPOWER => {
-                    if display.fullscreen {
-                        // disable screen saver and blanking in fullscreen mode
-                        return 0;
-                    }
-                }
-                SC_KEYMENU => {
-                    // user trying to access menu via ALT
-                    return 0;
-                }
-                _ => {}
-            }
-        }
-        WM_ERASEBKGND => {
-            return 1;
-        }
-        WM_SIZE => {
-            if display.cursor_grabbed {
-                update_clip_rect(hwnd);
-            }
-
-            let iconified = wparam == SIZE_MINIMIZED;
-            if iconified != display.iconified {
-                display.iconified = iconified;
-                if iconified {
-                    event_handler.window_minimized_event(context.with_display(display));
-                } else {
-                    event_handler.window_restored_event(context.with_display(display));
-                }
-            }
-        }
-        WM_SETCURSOR => {
-            if display.user_cursor {
-                if LOWORD(lparam as _) == HTCLIENT as _ {
-                    SetCursor(display.cursor);
-
-                    return 1;
-                }
-            }
-        }
-        WM_LBUTTONDOWN => {
-            let mouse_x = display.mouse_x;
-            let mouse_y = display.mouse_y;
-            event_handler.mouse_button_down_event(
-                context.with_display(display),
-                MouseButton::Left,
-                mouse_x,
-                mouse_y,
-            );
-        }
-        WM_RBUTTONDOWN => {
-            let mouse_x = display.mouse_x;
-            let mouse_y = display.mouse_y;
-            event_handler.mouse_button_down_event(
-                context.with_display(display),
-                MouseButton::Right,
-                mouse_x,
-                mouse_y,
-            );
-        }
-        WM_MBUTTONDOWN => {
-            let mouse_x = display.mouse_x;
-            let mouse_y = display.mouse_y;
-            event_handler.mouse_button_down_event(
-                context.with_display(display),
-                MouseButton::Middle,
-                mouse_x,
-                mouse_y,
-            );
-        }
-        WM_LBUTTONUP => {
-            let mouse_x = display.mouse_x;
-            let mouse_y = display.mouse_y;
-            event_handler.mouse_button_up_event(
-                context.with_display(display),
-                MouseButton::Left,
-                mouse_x,
-                mouse_y,
-            );
-        }
-        WM_RBUTTONUP => {
-            let mouse_x = display.mouse_x;
-            let mouse_y = display.mouse_y;
-            event_handler.mouse_button_up_event(
-                context.with_display(display),
-                MouseButton::Right,
-                mouse_x,
-                mouse_y,
-            );
-        }
-        WM_MBUTTONUP => {
-            let mouse_x = display.mouse_x;
-            let mouse_y = display.mouse_y;
-            event_handler.mouse_button_up_event(
-                context.with_display(display),
-                MouseButton::Middle,
-                mouse_x,
-                mouse_y,
-            );
-        }
-
-        WM_MOUSEMOVE => {
-            display.mouse_x = GET_X_LPARAM(lparam) as f32 * display.mouse_scale;
-            display.mouse_y = GET_Y_LPARAM(lparam) as f32 * display.mouse_scale;
-
-            // mouse enter was not handled by miniquad anyway
-            // if !_sapp.win32_mouse_tracked {
-            //     _sapp.win32_mouse_tracked = true;
-
-            //     let mut tme: TRACKMOUSEEVENT = std::mem::zeroed();
-
-            //     tme.cbSize = std::mem::size_of_val(&tme) as _;
-            //     tme.dwFlags = TME_LEAVE;
-            //     tme.hwndTrack = wnd;
-            //     TrackMouseEvent(&mut tme as *mut _);
-            //     _sapp_win32_mouse_event(
-            //         sapp_event_type_SAPP_EVENTTYPE_MOUSE_ENTER,
-            //         sapp_mousebutton_SAPP_MOUSEBUTTON_INVALID,
-            //     );
-            // }
-
-            let mouse_x = display.mouse_x;
-            let mouse_y = display.mouse_y;
-
-            event_handler.mouse_motion_event(context.with_display(display), mouse_x, mouse_y);
-        }
-
         WM_MOVE if display.cursor_grabbed => {
             update_clip_rect(hwnd);
         }
 
-        WM_INPUT => {
-            let mut data: RAWINPUT = std::mem::zeroed();
-            let mut size = std::mem::size_of::<RAWINPUT>();
-            let get_succeed = GetRawInputData(
-                lparam as _,
-                RID_INPUT,
-                &mut data as *mut _ as _,
-                &mut size as *mut _ as _,
-                std::mem::size_of::<RAWINPUTHEADER>() as _,
-            );
-            if get_succeed as i32 == -1 {
-                panic!("failed to retrieve raw input data");
-            }
-
-            if data.data.mouse().usFlags & MOUSE_MOVE_ABSOLUTE == 1 {
-                unimplemented!("Got MOUSE_MOVE_ABSOLUTE on WM_INPUT, related issue: https://github.com/not-fl3/miniquad/issues/165");
-            }
-
-            let dx = data.data.mouse().lLastX as f32 * display.mouse_scale;
-            let dy = data.data.mouse().lLastY as f32 * display.mouse_scale;
-            event_handler.raw_mouse_motion(context.with_display(display), dx as f32, dy as f32);
-
-            update_clip_rect(hwnd);
-        }
-
-        WM_MOUSELEAVE => {
-            // mouse leave was not handled by miniquad anyway
-            // _sapp.win32_mouse_tracked = false;
-            // _sapp_win32_mouse_event(
-            //     sapp_event_type_SAPP_EVENTTYPE_MOUSE_LEAVE,
-            //     sapp_mousebutton_SAPP_MOUSEBUTTON_INVALID,
-            // );
-        }
-        WM_MOUSEWHEEL => {
-            event_handler.mouse_wheel_event(
-                context.with_display(display),
-                0.0,
-                (HIWORD(wparam as _) as i16) as f32,
-            );
-        }
-
-        WM_MOUSEHWHEEL => {
-            event_handler.mouse_wheel_event(
-                context.with_display(display),
-                (HIWORD(wparam as _) as i16) as f32,
-                0.0,
-            );
-        }
-        WM_CHAR => {
-            let chr = wparam as u32;
-            let repeat = !!(lparam & 0x40000000) != 0;
-            let mods = key_mods();
-            if chr > 0 {
-                if let Some(chr) = std::char::from_u32(chr as u32) {
-                    event_handler.char_event(context.with_display(display), chr, mods, repeat);
-                }
-            }
-        }
         WM_KEYDOWN | WM_SYSKEYDOWN => {
             let keycode = HIWORD(lparam as _) as u32 & 0x1FF;
             let keycode = keycodes::translate_keycode(keycode);
-            let mods = key_mods();
-            let repeat = !!(lparam & 0x40000000) != 0;
-            event_handler.key_down_event(context.with_display(display), keycode, mods, repeat);
+            event_handler.key_down_event(context.with_display(display), keycode);
         }
-        WM_KEYUP | WM_SYSKEYUP => {
-            let keycode = HIWORD(lparam as _) as u32 & 0x1FF;
-            let keycode = keycodes::translate_keycode(keycode);
-            let mods = key_mods();
-            event_handler.key_up_event(context.with_display(display), keycode, mods);
-        }
-
         _ => {}
     }
 
@@ -844,14 +535,9 @@ where
             dpi_aware: false,
             window_resizable: conf.window_resizable,
             cursor_grabbed: false,
-            iconified: false,
             content_scale: 1.,
             mouse_scale: 1.,
             window_scale: 1.,
-            mouse_x: 0.,
-            mouse_y: 0.,
-            user_cursor: false,
-            cursor: std::ptr::null_mut(),
             display_data: Default::default(),
             libopengl32,
             _msg_wnd: msg_wnd,
@@ -902,13 +588,6 @@ where
                 .update(p.context.with_display(&mut p.display));
             p.event_handler.draw(p.context.with_display(&mut p.display));
             SwapBuffers(p.display.dc);
-
-            if p.display.update_dimensions(wnd) {
-                let width = p.display.display_data.screen_width as _;
-                let height = p.display.display_data.screen_height as _;
-                p.event_handler
-                    .resize_event(p.context.with_display(&mut p.display), width, height);
-            }
             if p.display.display_data.quit_requested {
                 PostMessageW(p.display.wnd, WM_CLOSE, 0, 0);
             }

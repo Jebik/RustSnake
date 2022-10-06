@@ -7,8 +7,8 @@ edition = "2021"
 [dependencies]
 winopengl = { path = "../winopengl"}
 winapi = { version = "0.3", features = ["winuser"] }
+jpeg-decoder = "0.2.6"
 rand = "0.8.5"
-webp = "0.2.2"
 
 [profile.release]
 opt-level = "z"

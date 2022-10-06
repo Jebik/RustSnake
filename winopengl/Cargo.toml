@@ -5,3 +5,9 @@ edition = "2021"
 
 [dependencies]
 winapi = { version = "0.3", features = ["wingdi", "winuser", "libloaderapi", "windef", "shellscalingapi", "errhandlingapi", "windowsx", "winbase", "hidusage"] }
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+strip = true

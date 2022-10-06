@@ -1,6 +1,6 @@
 use std::{ffi::CString, time::Duration};
 
-use winopengl::{EventHandler, Context, KeyCode, KeyMods};
+use winopengl::{EventHandler, Context, KeyCode};
 use rand::Rng;
 use winapi::um::winuser::{MessageBoxA, MB_OK, MB_ICONINFORMATION, SetWindowTextA};
 
@@ -10,6 +10,13 @@ mod background;
 use crate::pos::Pos;
 
 use self::{snake::{Snake, Dir}, bonus::Bonus, background::Background};
+
+use crate::images::jpg as Images;
+pub const BOX_SIZE: i16 = 64;
+pub const SCREEN_WIDTH: i16 = 1600;
+pub const SCREEN_HEIGHT: i16 = 896;
+pub const SCREEN_WIDTH_FLOAT: f32 = 1600.;
+pub const SCREEN_HEIGHT_FLOAT: f32 = 896.;
 
 #[derive(Clone, Copy)]
 #[derive(Debug)]
@@ -54,8 +61,8 @@ impl Game
             bonus: Bonus::new(ctx),
             bg: Background::new(ctx),
             bonus_list : Vec::new(),
-            width: 25,
-            height:14,
+            width: SCREEN_WIDTH/BOX_SIZE,
+            height: SCREEN_HEIGHT/BOX_SIZE,
             score: 0,
             running: false
         };
@@ -118,8 +125,8 @@ impl Game
             || self.snake.pos.y < 0 || self.snake.pos.y > self.height 
             || self.snake.eat_himself()
         {
+            self.running = false;            
             show_score(self.score);
-            self.running = false;
             self.init();
         }
     }
@@ -212,11 +219,11 @@ fn show_score(score: i32) {
 
 impl EventHandler for Game 
 {
-    fn key_up_event(&mut self, ctx: &mut Context, _keycode: KeyCode, _keymods: KeyMods) 
+    fn key_down_event(&mut self, ctx: &mut Context, _keycode: KeyCode) 
     {
         if _keycode == KeyCode::Escape
         { 
-            ctx.quit()
+            ctx.order_quit()
         }
         //On attend un premier input pour pas lancer tout de suite le jeu
         if !self.running

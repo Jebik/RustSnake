@@ -1,7 +1,8 @@
 use winopengl::Context;
-use crate::images::{SNAKE_BONUS};
+use crate::game::Images::{SNAKE_BONUS};
 use crate::pos::Pos;
 use crate::graphical_object::GraphicalObject;
+use crate::texture::get_texture;
 
 pub(crate) struct Bonus
 {
@@ -12,7 +13,7 @@ impl Bonus {
     {
         Bonus 
         {
-            graphic: GraphicalObject::new(ctx, SNAKE_BONUS, false) 
+            graphic: GraphicalObject::new(ctx, get_texture(SNAKE_BONUS), false) 
         }
     }
     

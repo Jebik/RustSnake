@@ -2,7 +2,9 @@ use std::time::{SystemTime, Duration};
 
 use winopengl::{Context};
 
-use crate::{images::{SNAKE_HEAD, SNAKE_BODY}, pos::Pos, graphical_object::{GraphicalObject, ROTATION}};
+use crate::{game::Images::{SNAKE_HEAD, SNAKE_BODY}, pos::Pos, graphical_object::{GraphicalObject, ROTATION}, texture::{get_texture}};
+
+use super::{SCREEN_WIDTH, SCREEN_HEIGHT, BOX_SIZE};
 
 #[derive(PartialEq, Eq, Clone, Copy)]
 pub enum Dir 
@@ -35,12 +37,12 @@ impl Snake {
             body_part: Vec::new(),   
             dir: Dir::Right,        
             next_dir: Dir::Right,         
-            pos:Pos { x: 12, y: 7 },    
+            pos:Pos { x: SCREEN_WIDTH/(2*BOX_SIZE), y: SCREEN_HEIGHT/(2*BOX_SIZE) },    
             last_move_start:SystemTime::now(),
             
             //ForDrawing
-            body: GraphicalObject::new(ctx, SNAKE_BODY, true),
-            head: GraphicalObject::new(ctx, SNAKE_HEAD, false)
+            body: GraphicalObject::new(ctx, get_texture(SNAKE_BODY), false),
+            head: GraphicalObject::new(ctx, get_texture(SNAKE_HEAD), false)
         }
     }
 
@@ -48,8 +50,8 @@ impl Snake {
         self.body_part = Vec::new();
         self.dir = Dir::Right;
         self.next_dir = Dir::Right;
-        self.pos.x = 12;
-        self.pos.y = 7;
+        self.pos.x = SCREEN_WIDTH/(2*BOX_SIZE);
+        self.pos.y = SCREEN_HEIGHT/(2*BOX_SIZE);
     }    
 
 
@@ -64,7 +66,7 @@ impl Snake {
         let curr_move_duration = now.duration_since(self.last_move_start).unwrap();
 
         if curr_move_duration > move_duration
-        {   
+        {
             //we reach BIG EVENT
             reach = true;
             self.compute_target();

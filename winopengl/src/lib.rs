@@ -49,18 +49,6 @@ impl Context {
         self.display().screen_size()
     }
 
-    /// The dpi scaling factor (window pixels to framebuffer pixels)
-    /// NOTE: [High DPI Rendering](../conf/index.html#high-dpi-rendering)
-    pub fn dpi_scale(&self) -> f32 {
-        self.display().dpi_scale()
-    }
-
-    /// True when high_dpi was requested and actually running in a high-dpi scenario
-    /// NOTE: [High DPI Rendering](../conf/index.html#high-dpi-rendering)
-    pub fn high_dpi(&self) -> bool {
-        self.display().high_dpi()
-    }
-
     /// This function simply quits the application without
     /// giving the user a chance to intervene. Usually this might
     /// be called when the user clicks the 'Ok' button in a 'Really Quit?'
@@ -72,81 +60,9 @@ impl Context {
         self.display_mut().order_quit();
     }
 
-    /// Calling request_quit() will trigger "quit_requested_event" event , giving
-    /// the user code a chance to intervene and cancel the pending quit process
-    /// (for instance to show a 'Really Quit?' dialog box).
-    /// If the event handler callback does nothing, the application will be quit as usual.
-    /// To prevent this, call the function "cancel_quit()"" from inside the event handler.
-    pub fn request_quit(&mut self) {
-        self.display_mut().request_quit();
-    }
-
-    /// Cancels a pending quit request, either initiated
-    /// by the user clicking the window close button, or programmatically
-    /// by calling "request_quit()". The only place where calling this
-    /// function makes sense is from inside the event handler callback when
-    /// the "quit_requested_event" event has been received
-    pub fn cancel_quit(&mut self) {
-        self.display_mut().cancel_quit();
-    }
-
-    /// Capture mouse cursor to the current window
-    /// On WASM this will automatically hide cursor
-    /// On desktop this will bound cursor to windows border
-    /// NOTICE: on desktop cursor will not be automatically released after window lost focus
-    ///         so set_cursor_grab(false) on window's focus lost is recommended.
-    /// TODO: implement window focus events
-    pub fn set_cursor_grab(&mut self, grab: bool) {
-        self.display_mut().set_cursor_grab(grab);
-    }
-
-    /// Show or hide the mouse cursor
-    pub fn show_mouse(&mut self, shown: bool) {
-        self.display_mut().show_mouse(shown);
-    }
-
-    /// Set the mouse cursor icon.
-    pub fn set_mouse_cursor(&mut self, cursor_icon: CursorIcon) {
-        self.display_mut().set_mouse_cursor(cursor_icon);
-    }
-
     /// Set the application's window size.
     pub fn set_window_size(&mut self, new_width: u32, new_height: u32) {
         self.display_mut().set_window_size(new_width, new_height);
-    }
-
-    pub fn set_fullscreen(&mut self, fullscreen: bool) {
-        self.display_mut().set_fullscreen(fullscreen);
-    }
-
-    /// Get current OS clipboard value
-    pub fn clipboard_get(&mut self) -> Option<String> {
-        self.display_mut().clipboard_get()
-    }
-
-    /// Save value to OS clipboard
-    pub fn clipboard_set(&mut self, data: &str) {
-        self.display_mut().clipboard_set(data);
-    }
-    pub fn dropped_file_count(&mut self) -> usize {
-        self.display_mut().dropped_file_count()
-    }
-    pub fn dropped_file_bytes(&mut self, index: usize) -> Option<Vec<u8>> {
-        self.display_mut().dropped_file_bytes(index)
-    }
-    pub fn dropped_file_path(&mut self, index: usize) -> Option<std::path::PathBuf> {
-        self.display_mut().dropped_file_path(index)
-    }
-
-    /// Shortcut for `order_quit`. Will add a legacy attribute at some point.
-    pub fn quit(&mut self) {
-        self.display_mut().order_quit()
-    }
-
-    /// Show/hide onscreen keyboard.
-    /// Only works on Android right now.
-    pub fn show_keyboard(&mut self, show: bool) {
-        self.display_mut().show_keyboard(show)
     }
 }
 

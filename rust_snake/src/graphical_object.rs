@@ -4,12 +4,8 @@ use winopengl::{
     Bindings, Buffer, BufferLayout, BufferType, Context, Pipeline, Shader, Texture,
     VertexAttribute, VertexFormat, TextureParams, ShaderMeta, UniformBlockLayout, UniformDesc, UniformType,
 };
-use webp::Decoder;
 
-use crate::pos::Pos;
-
-const SCREEN_WIDTH: f32 = 1600.;
-const SCREEN_HEIGHT: f32 = 896.;
+use crate::{pos::Pos, texture::TextureData, game::{SCREEN_WIDTH_FLOAT, SCREEN_HEIGHT_FLOAT}};
 
 pub enum ROTATION
 {
@@ -49,31 +45,21 @@ impl GraphicalObject {
         ctx.apply_bindings(&self.bindings);
         ctx.apply_uniforms(&Uniforms {
             offset: (
-                self.x_offset + (2. * f32::from(pos.x) / (SCREEN_WIDTH/self.width)) - 1.,
-                self.y_offset + (2. * f32::from(pos.y) / (SCREEN_HEIGHT/self.height)) - 1.,
+                self.x_offset + (2. * f32::from(pos.x) / (SCREEN_WIDTH_FLOAT/self.width)) - 1.,
+                self.y_offset + (2. * f32::from(pos.y) / (SCREEN_HEIGHT_FLOAT/self.height)) - 1.,
             ),
             time: ratio
         });
         ctx.draw(0, 6, 1);
     }
 
-    pub(crate) fn new(ctx: &mut Context, file: &[u8], body: bool) -> GraphicalObject 
+    pub(crate) fn new(ctx: &mut Context, texture: TextureData, body: bool) -> GraphicalObject 
     { 
-        let file = Decoder::new(file);
-        let res = file.decode().unwrap();
-        
-        //LOADING IMAGE;
-        let width:u16 = res.width() as _;
-        let height:u16 = res.height() as _;
-        let img = res.to_image();
-        let texture = img.to_rgb8();
-        let data = &texture as &[u8];
+        let widhtf = f32::from(texture.width);
+        let heightf = f32::from(texture.height);
 
-        let widhtf = f32::from(width);
-        let heightf = f32::from(height);
-
-        let x_offset = widhtf / SCREEN_WIDTH;
-        let y_offset = heightf / SCREEN_HEIGHT;
+        let x_offset = widhtf / SCREEN_WIDTH_FLOAT;
+        let y_offset = heightf / SCREEN_HEIGHT_FLOAT;
         let now = SystemTime::now();
 
         GraphicalObject {
@@ -81,16 +67,16 @@ impl GraphicalObject {
             height: heightf,
             x_offset,
             y_offset,
-            bindings: init_bindings(ctx, data, width, height),
+            bindings: init_bindings(ctx, texture),
             pipeline: init_pipeline(ctx, body),
             time: now
         }
     }       
 }
 
-fn init_bindings(ctx: &mut Context, data: &[u8], width: u16, height: u16) -> Bindings {
-    let widthf = f32::from(width);
-    let heightf = f32::from(height);
+fn init_bindings(ctx: &mut Context, texture: TextureData, ) -> Bindings {
+    let widthf = f32::from(texture.width);
+    let heightf = f32::from(texture.height);
     let square_vertices: [Vertex; 4] = get_rot_vertex(ROTATION::None, widthf, heightf);
     let vertex_buffer = Buffer::immutable(ctx, BufferType::VertexBuffer, &square_vertices);
 
@@ -102,10 +88,10 @@ fn init_bindings(ctx: &mut Context, data: &[u8], width: u16, height: u16) -> Bin
         format: winopengl::TextureFormat::RGB8,
         wrap: winopengl::TextureWrap::Clamp,
         filter: winopengl::FilterMode::Linear,
-        width: width as _,
-        height: height as _,
+        width: texture.width as _,
+        height: texture.height as _,
     };
-    let texture = Texture::from_data_and_format(ctx, data, param);
+    let texture = Texture::from_data_and_format(ctx, &texture.data as &[u8], param);
     
     Bindings {
         vertex_buffers: vec![vertex_buffer],
@@ -139,37 +125,37 @@ fn get_rot_vertex(rotation: ROTATION, width: f32, height: f32) -> [Vertex; 4] {
         ROTATION::None =>
         {
             [
-                Vertex { pos : Vec2 { x: -width/SCREEN_WIDTH, y: -height/SCREEN_HEIGHT }, uv: Vec2 { x: 0., y: 1. } },
-                Vertex { pos : Vec2 { x:  width/SCREEN_WIDTH, y: -height/SCREEN_HEIGHT }, uv: Vec2 { x: 1., y: 1. } },
-                Vertex { pos : Vec2 { x:  width/SCREEN_WIDTH, y:  height/SCREEN_HEIGHT }, uv: Vec2 { x: 1., y: 0. } },
-                Vertex { pos : Vec2 { x: -width/SCREEN_WIDTH, y:  height/SCREEN_HEIGHT }, uv: Vec2 { x: 0., y: 0. } },
+                Vertex { pos : Vec2 { x: -width/SCREEN_WIDTH_FLOAT, y: -height/SCREEN_HEIGHT_FLOAT }, uv: Vec2 { x: 0., y: 1. } },
+                Vertex { pos : Vec2 { x:  width/SCREEN_WIDTH_FLOAT, y: -height/SCREEN_HEIGHT_FLOAT }, uv: Vec2 { x: 1., y: 1. } },
+                Vertex { pos : Vec2 { x:  width/SCREEN_WIDTH_FLOAT, y:  height/SCREEN_HEIGHT_FLOAT }, uv: Vec2 { x: 1., y: 0. } },
+                Vertex { pos : Vec2 { x: -width/SCREEN_WIDTH_FLOAT, y:  height/SCREEN_HEIGHT_FLOAT }, uv: Vec2 { x: 0., y: 0. } },
             ]
         },
         ROTATION::Clockwise90 =>
         {
             [
-                Vertex { pos : Vec2 { x: -width/SCREEN_WIDTH, y: -height/SCREEN_HEIGHT }, uv: Vec2 { x: 0., y: 1. } },
-                Vertex { pos : Vec2 { x:  width/SCREEN_WIDTH, y: -height/SCREEN_HEIGHT }, uv: Vec2 { x: 0., y: 0. } },
-                Vertex { pos : Vec2 { x:  width/SCREEN_WIDTH, y:  height/SCREEN_HEIGHT }, uv: Vec2 { x: 1., y: 0. } },
-                Vertex { pos : Vec2 { x: -width/SCREEN_WIDTH, y:  height/SCREEN_HEIGHT }, uv: Vec2 { x: 1., y: 1. } },
+                Vertex { pos : Vec2 { x: -width/SCREEN_WIDTH_FLOAT, y: -height/SCREEN_HEIGHT_FLOAT }, uv: Vec2 { x: 0., y: 1. } },
+                Vertex { pos : Vec2 { x:  width/SCREEN_WIDTH_FLOAT, y: -height/SCREEN_HEIGHT_FLOAT }, uv: Vec2 { x: 0., y: 0. } },
+                Vertex { pos : Vec2 { x:  width/SCREEN_WIDTH_FLOAT, y:  height/SCREEN_HEIGHT_FLOAT }, uv: Vec2 { x: 1., y: 0. } },
+                Vertex { pos : Vec2 { x: -width/SCREEN_WIDTH_FLOAT, y:  height/SCREEN_HEIGHT_FLOAT }, uv: Vec2 { x: 1., y: 1. } },
             ]
         },
         ROTATION::Clockwise180 =>
         {
             [
-                Vertex { pos: Vec2 { x: -width / SCREEN_WIDTH, y: -height / SCREEN_HEIGHT, }, uv: Vec2 { x: 0., y: 0. }, },
-                Vertex { pos: Vec2 { x: width / SCREEN_WIDTH, y: -height / SCREEN_HEIGHT, }, uv: Vec2 { x: 1., y: 0. }, },
-                Vertex { pos: Vec2 { x: width / SCREEN_WIDTH, y: height / SCREEN_HEIGHT, }, uv: Vec2 { x: 1., y: 1. }, },
-                Vertex { pos: Vec2 { x: -width / SCREEN_WIDTH, y: height / SCREEN_HEIGHT, }, uv: Vec2 { x: 0., y: 1. }, },
+                Vertex { pos: Vec2 { x: -width / SCREEN_WIDTH_FLOAT, y: -height / SCREEN_HEIGHT_FLOAT, }, uv: Vec2 { x: 0., y: 0. }, },
+                Vertex { pos: Vec2 { x: width / SCREEN_WIDTH_FLOAT, y: -height / SCREEN_HEIGHT_FLOAT, }, uv: Vec2 { x: 1., y: 0. }, },
+                Vertex { pos: Vec2 { x: width / SCREEN_WIDTH_FLOAT, y: height / SCREEN_HEIGHT_FLOAT, }, uv: Vec2 { x: 1., y: 1. }, },
+                Vertex { pos: Vec2 { x: -width / SCREEN_WIDTH_FLOAT, y: height / SCREEN_HEIGHT_FLOAT, }, uv: Vec2 { x: 0., y: 1. }, },
             ]
         },
         ROTATION::Clockwise270 =>
         {
             [
-                Vertex { pos : Vec2 { x: -width/SCREEN_WIDTH, y: -height/SCREEN_HEIGHT }, uv: Vec2 { x: 1., y: 0. } },
-                Vertex { pos : Vec2 { x:  width/SCREEN_WIDTH, y: -height/SCREEN_HEIGHT }, uv: Vec2 { x: 1., y: 1. } },
-                Vertex { pos : Vec2 { x:  width/SCREEN_WIDTH, y:  height/SCREEN_HEIGHT }, uv: Vec2 { x: 0., y: 1. } },
-                Vertex { pos : Vec2 { x: -width/SCREEN_WIDTH, y:  height/SCREEN_HEIGHT }, uv: Vec2 { x: 0., y: 0. } },
+                Vertex { pos : Vec2 { x: -width/SCREEN_WIDTH_FLOAT, y: -height/SCREEN_HEIGHT_FLOAT }, uv: Vec2 { x: 1., y: 0. } },
+                Vertex { pos : Vec2 { x:  width/SCREEN_WIDTH_FLOAT, y: -height/SCREEN_HEIGHT_FLOAT }, uv: Vec2 { x: 1., y: 1. } },
+                Vertex { pos : Vec2 { x:  width/SCREEN_WIDTH_FLOAT, y:  height/SCREEN_HEIGHT_FLOAT }, uv: Vec2 { x: 0., y: 1. } },
+                Vertex { pos : Vec2 { x: -width/SCREEN_WIDTH_FLOAT, y:  height/SCREEN_HEIGHT_FLOAT }, uv: Vec2 { x: 0., y: 0. } },
             ]
         }
     }
