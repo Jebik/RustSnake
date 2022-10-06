@@ -49,7 +49,13 @@ void main() {
                     res.g = 0.4;
                 }
             }
-        }   
+        } 
+        else 
+        {
+            res.r = 0.;
+            res.g = 0.;
+            res.b = 0.;
+        } 
         gl_FragColor = res;
     }
 }
