@@ -39,12 +39,6 @@ pub(crate) struct Display {
 }
 
 impl crate::native::NativeDisplay for Display {
-    fn screen_size(&self) -> (f32, f32) {
-        (
-            self.display_data.screen_width as _,
-            self.display_data.screen_height as _,
-        )
-    }
     fn order_quit(&mut self) {
         self.display_data.quit_ordered = true;
     }
