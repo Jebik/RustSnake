@@ -113,7 +113,7 @@ impl Snake {
     
     pub fn grow(&mut self) 
     {
-        if self.body_part.len() == 0
+        if self.body_part.is_empty()
         {
             self.body.start_shader_time();
         }
@@ -141,19 +141,19 @@ impl Snake {
         match self.dir {
             Dir::Left => 
             {   
-                self.pos.x = self.pos.x - 1;
+                self.pos.x -=  1;
             },
             Dir::Right => 
             {
-                self.pos.x = self.pos.x + 1;      
+                self.pos.x += 1;      
             },
             Dir::Up => 
             {
-                self.pos.y = self.pos.y + 1;           
+                self.pos.y += 1;           
             },
             Dir::Down => 
             {
-                self.pos.y = self.pos.y - 1;        
+                self.pos.y -= 1;        
             }
         }
         for b in self.body_part.iter_mut()

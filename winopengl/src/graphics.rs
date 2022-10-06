@@ -1,12 +1,8 @@
 use std::{ffi::CString, mem};
 mod texture;
-
-
 use std::{error::Error, fmt::Display};
-
 pub use texture::{FilterMode, Texture, TextureAccess, TextureFormat, TextureParams, TextureWrap};
 use crate::graphics::GraphicsContext as Context;
-
 use crate::gl::*;
 
 fn get_uniform_location(program: GLuint, name: &str) -> Option<i32> {
@@ -445,11 +441,6 @@ struct GlCache {
     vertex_buffer: GLuint,
     textures: [GLuint; MAX_SHADERSTAGE_IMAGES],
     cur_pipeline: Option<Pipeline>,
-    color_blend: Option<BlendState>,
-    alpha_blend: Option<BlendState>,
-    stencil: Option<StencilState>,
-    color_write: ColorMask,
-    cull_face: CullFace,
     attributes: [Option<CachedAttribute>; MAX_VERTEX_ATTRIBUTES],
 }
 
@@ -680,11 +671,6 @@ impl GraphicsContext {
                     index_type: None,
                     vertex_buffer: 0,
                     cur_pipeline: None,
-                    color_blend: None,
-                    alpha_blend: None,
-                    stencil: None,
-                    color_write: (true, true, true, true),
-                    cull_face: CullFace::Nothing,
                     stored_texture: 0,
                     textures: [0; MAX_SHADERSTAGE_IMAGES],
                     attributes: [None; MAX_VERTEX_ATTRIBUTES],
@@ -733,146 +719,6 @@ impl Context {
                     glFrontFace(GL_CCW);
                 },
             }
-        }
-
-        self.set_cull_face(self.pipelines[pipeline.0].params.cull_face);
-        self.set_blend(
-            self.pipelines[pipeline.0].params.color_blend,
-            self.pipelines[pipeline.0].params.alpha_blend,
-        );
-
-        self.set_stencil(self.pipelines[pipeline.0].params.stencil_test);
-        self.set_color_write(self.pipelines[pipeline.0].params.color_write);
-    }
-
-    pub fn set_cull_face(&mut self, cull_face: CullFace) {
-        if self.cache.cull_face == cull_face {
-            return;
-        }
-
-        match cull_face {
-            CullFace::Nothing => unsafe {
-                glDisable(GL_CULL_FACE);
-            },
-            CullFace::Front => unsafe {
-                glEnable(GL_CULL_FACE);
-                glCullFace(GL_FRONT);
-            },
-            CullFace::Back => unsafe {
-                glEnable(GL_CULL_FACE);
-                glCullFace(GL_BACK);
-            },
-        }
-        self.cache.cull_face = cull_face;
-    }
-
-    pub fn set_color_write(&mut self, color_write: ColorMask) {
-        if self.cache.color_write == color_write {
-            return;
-        }
-        let (r, g, b, a) = color_write;
-        unsafe { glColorMask(r as _, g as _, b as _, a as _) }
-        self.cache.color_write = color_write;
-    }
-
-    pub fn set_blend(&mut self, color_blend: Option<BlendState>, alpha_blend: Option<BlendState>) {
-        if color_blend.is_none() && alpha_blend.is_some() {
-            panic!("AlphaBlend without ColorBlend");
-        }
-        if self.cache.color_blend == color_blend && self.cache.alpha_blend == alpha_blend {
-            return;
-        }
-
-        unsafe {
-            if let Some(color_blend) = color_blend {
-                if self.cache.color_blend.is_none() {
-                    glEnable(GL_BLEND);
-                }
-
-                let BlendState {
-                    equation: eq_rgb,
-                    sfactor: src_rgb,
-                    dfactor: dst_rgb,
-                } = color_blend;
-
-                if let Some(BlendState {
-                    equation: eq_alpha,
-                    sfactor: src_alpha,
-                    dfactor: dst_alpha,
-                }) = alpha_blend
-                {
-                    glBlendFuncSeparate(
-                        src_rgb.into(),
-                        dst_rgb.into(),
-                        src_alpha.into(),
-                        dst_alpha.into(),
-                    );
-                    glBlendEquationSeparate(eq_rgb.into(), eq_alpha.into());
-                } else {
-                    glBlendFunc(src_rgb.into(), dst_rgb.into());
-                    glBlendEquationSeparate(eq_rgb.into(), eq_rgb.into());
-                }
-            } else if self.cache.color_blend.is_some() {
-                glDisable(GL_BLEND);
-            }
-        }
-
-        self.cache.color_blend = color_blend;
-        self.cache.alpha_blend = alpha_blend;
-    }
-
-    pub fn set_stencil(&mut self, stencil_test: Option<StencilState>) {
-        if self.cache.stencil == stencil_test {
-            return;
-        }
-        unsafe {
-            if let Some(stencil) = stencil_test {
-                if self.cache.stencil.is_none() {
-                    glEnable(GL_STENCIL_TEST);
-                }
-
-                let front = &stencil.front;
-                glStencilOpSeparate(
-                    GL_FRONT,
-                    front.fail_op.into(),
-                    front.depth_fail_op.into(),
-                    front.pass_op.into(),
-                );
-                glStencilFuncSeparate(
-                    GL_FRONT,
-                    front.test_func.into(),
-                    front.test_ref,
-                    front.test_mask,
-                );
-                glStencilMaskSeparate(GL_FRONT, front.write_mask);
-
-                let back = &stencil.back;
-                glStencilOpSeparate(
-                    GL_BACK,
-                    back.fail_op.into(),
-                    back.depth_fail_op.into(),
-                    back.pass_op.into(),
-                );
-                glStencilFuncSeparate(
-                    GL_BACK,
-                    back.test_func.into(),
-                    back.test_ref.into(),
-                    back.test_mask,
-                );
-                glStencilMaskSeparate(GL_BACK, back.write_mask);
-            } else if self.cache.stencil.is_some() {
-                glDisable(GL_STENCIL_TEST);
-            }
-        }
-
-        self.cache.stencil = stencil_test;
-    }
-
-    /// Set a new viewport rectangle.
-    /// Should be applied after begin_pass.
-    pub fn apply_viewport(&mut self, x: i32, y: i32, w: i32, h: i32) {
-        unsafe {
-            glViewport(x, y, w, h);
         }
     }
 
@@ -1630,11 +1476,6 @@ impl Pipeline {
 
         ctx.pipelines.push(pipeline);
         Pipeline(ctx.pipelines.len() - 1)
-    }
-
-    pub fn set_blend(&self, ctx: &mut Context, color_blend: Option<BlendState>) {
-        let mut pipeline = &mut ctx.pipelines[self.0];
-        pipeline.params.color_blend = color_blend;
     }
 }
 

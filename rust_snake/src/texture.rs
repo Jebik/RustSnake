@@ -18,6 +18,6 @@ pub fn get_texture(file_data: &[u8]) -> TextureData {
     {
         width,
         height,
-        data:Vec::from(pixels)
+        data:pixels
     }
 }

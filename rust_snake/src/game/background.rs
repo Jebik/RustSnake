@@ -19,11 +19,11 @@ impl Background {
             height: 896,
             data: buffer
         }; 
-        if open_file.is_ok()
+
+        if let Ok(file) = open_file
         {
             let mut file_buffer = Vec::new();
-            let f = open_file.unwrap();
-            let mut reader = BufReader::new(f);
+            let mut reader = BufReader::new(file);
             reader.read_to_end(&mut file_buffer).expect("readError");
             texture = get_texture(&file_buffer as &[u8]);
         }

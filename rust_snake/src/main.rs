@@ -36,8 +36,7 @@ fn main() {
         Conf {
             window_title: "AmbuSnake".to_string(),
             window_width: SCREEN_WIDTH as _,
-            window_height: SCREEN_HEIGHT as _,
-            .. Default::default()
+            window_height: SCREEN_HEIGHT as _
         },
         |ctx| Box::new(game::Game::new(ctx)),
     );
