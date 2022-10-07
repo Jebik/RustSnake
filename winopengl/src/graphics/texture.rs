@@ -1,7 +1,7 @@
 use crate::gl::*;
 use crate::graphics::GraphicsContext as Context;
 
-#[derive(Clone, Copy, Debug, PartialEq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct Texture {
     pub texture: GLuint,
     pub width: u32,
@@ -80,7 +80,7 @@ impl TextureFormat {
             TextureFormat::RGB8 => 3 * square,
             TextureFormat::RGBA8 => 4 * square,
             TextureFormat::Depth => 2 * square,
-            TextureFormat::Alpha => 1 * square,
+            TextureFormat::Alpha => square,
         }
     }
 }

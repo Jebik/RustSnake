@@ -217,11 +217,9 @@ struct CachedAttribute {
 
 struct GlCache {
     stored_index_buffer: GLuint,
-    stored_index_type: Option<IndexType>,
     stored_vertex_buffer: GLuint,
     stored_texture: GLuint,
     index_buffer: GLuint,
-    index_type: Option<IndexType>,
     vertex_buffer: GLuint,
     textures: [GLuint; MAX_SHADERSTAGE_IMAGES],
     cur_pipeline: Option<Pipeline>,
@@ -229,22 +227,24 @@ struct GlCache {
 }
 
 impl GlCache {
-    fn bind_buffer(&mut self, target: GLenum, buffer: GLuint, index_type: Option<IndexType>) {
-        if target == GL_ARRAY_BUFFER {
+    fn bind_buffer(&mut self, target: GLenum, buffer: GLuint) {
+        if target == GL_ARRAY_BUFFER 
+        {
             if self.vertex_buffer != buffer {
                 self.vertex_buffer = buffer;
                 unsafe {
                     glBindBuffer(target, buffer);
                 }
             }
-        } else {
+        } 
+        else 
+        {
             if self.index_buffer != buffer {
                 self.index_buffer = buffer;
                 unsafe {
                     glBindBuffer(target, buffer);
                 }
             }
-            self.index_type = index_type;
         }
     }
 
@@ -253,22 +253,19 @@ impl GlCache {
             self.stored_vertex_buffer = self.vertex_buffer;
         } else {
             self.stored_index_buffer = self.index_buffer;
-            self.stored_index_type = self.index_type;
         }
     }
 
     fn restore_buffer_binding(&mut self, target: GLenum) {
         if target == GL_ARRAY_BUFFER {
             if self.stored_vertex_buffer != 0 {
-                self.bind_buffer(target, self.stored_vertex_buffer, None);
+                self.bind_buffer(target, self.stored_vertex_buffer);
                 self.stored_vertex_buffer = 0;
             }
-        } else {
-            if self.stored_index_buffer != 0 {
-                self.bind_buffer(target, self.stored_index_buffer, self.stored_index_type);
+        } else if self.stored_index_buffer != 0 {
+                self.bind_buffer(target, self.stored_index_buffer);
                 self.stored_index_buffer = 0;
-            }
-        }
+        }        
     }
 
     fn bind_texture(&mut self, slot_index: usize, texture: GLuint) {
@@ -290,10 +287,10 @@ impl GlCache {
     }
 
     fn clear_buffer_bindings(&mut self) {
-        self.bind_buffer(GL_ARRAY_BUFFER, 0, None);
+        self.bind_buffer(GL_ARRAY_BUFFER, 0);
         self.vertex_buffer = 0;
 
-        self.bind_buffer(GL_ELEMENT_ARRAY_BUFFER, 0, None);
+        self.bind_buffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         self.index_buffer = 0;
     }
 
@@ -353,10 +350,8 @@ impl GraphicsContext {
                 height,
                 cache: GlCache {
                     stored_index_buffer: 0,
-                    stored_index_type: None,
                     stored_vertex_buffer: 0,
                     index_buffer: 0,
-                    index_type: None,
                     vertex_buffer: 0,
                     cur_pipeline: None,
                     stored_texture: 0,
@@ -425,7 +420,6 @@ impl Context {
         self.cache.bind_buffer(
             GL_ELEMENT_ARRAY_BUFFER,
             bindings.index_buffer.gl_buf,
-            bindings.index_buffer.index_type,
         );
 
         let pip = &self.pipelines[self.cache.cur_pipeline.unwrap().0];
@@ -441,8 +435,7 @@ impl Context {
                 if cached_attr.map_or(true, |cached_attr| {
                     attribute != cached_attr.attribute || cached_attr.gl_vbuf != vb.gl_buf
                 }) {
-                    self.cache
-                        .bind_buffer(GL_ARRAY_BUFFER, vb.gl_buf, vb.index_type);
+                    self.cache.bind_buffer(GL_ARRAY_BUFFER, vb.gl_buf);
 
                     unsafe {
                         glVertexAttribPointer(
@@ -465,13 +458,11 @@ impl Context {
                         gl_vbuf: vb.gl_buf,
                     });
                 }
-            } else {
-                if cached_attr.is_some() {
+            } else if cached_attr.is_some() {
                     unsafe {
                         glDisableVertexAttribArray(attr_index as GLuint);
                     }
                     *cached_attr = None;
-                }
             }
         }
     }
@@ -544,8 +535,8 @@ impl Context {
     pub fn end_render_pass(&mut self) {
         unsafe {
             glBindFramebuffer(GL_FRAMEBUFFER, self.default_framebuffer);
-            self.cache.bind_buffer(GL_ARRAY_BUFFER, 0, None);
-            self.cache.bind_buffer(GL_ELEMENT_ARRAY_BUFFER, 0, None);
+            self.cache.bind_buffer(GL_ARRAY_BUFFER, 0);
+            self.cache.bind_buffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         }
     }
 
@@ -566,14 +557,12 @@ impl Context {
             return;
         }
 
-        let index_type = self.cache.index_type.expect("Unset index buffer type");
-
         unsafe {
             glDrawElementsInstanced(
                 GL_TRIANGLES,
                 num_elements,
-                index_type.into(),
-                (index_type.size() as i32 * base_element) as *mut _,
+                GL_UNSIGNED_SHORT,
+                (2 as i32 * base_element) as *mut _,
                 num_instances,
             );
         }
@@ -806,41 +795,72 @@ pub enum PrimitiveType {
     Lines,
 }
 
-#[derive(Debug, PartialEq, Clone, Copy)]
-pub enum IndexType {
-    Byte,
-    Short,
-    Int,
-}
 
-impl From<IndexType> for GLenum {
-    fn from(index_type: IndexType) -> Self {
-        match index_type {
-            IndexType::Byte => GL_UNSIGNED_BYTE,
-            IndexType::Short => GL_UNSIGNED_SHORT,
-            IndexType::Int => GL_UNSIGNED_INT,
-        }
-    }
-}
 
-impl IndexType {
-    pub fn for_type<T>() -> IndexType {
-        match std::mem::size_of::<T>() {
-            1 => IndexType::Byte,
-            2 => IndexType::Short,
-            4 => IndexType::Int,
-            _ => panic!("Unsupported index buffer index type"),
-        }
-    }
 
-    pub fn size(self) -> u8 {
-        match self {
-            IndexType::Byte => 1,
-            IndexType::Short => 2,
-            IndexType::Int => 4,
-        }
-    }
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 //CLEANED
 
@@ -986,15 +1006,9 @@ pub enum BufferType {
 #[derive(Clone, Copy, Debug)]
 pub struct Buffer {
     gl_buf: GLuint,
-    index_type: Option<IndexType>,
 }
 impl Buffer {
     pub fn immutable<T>(ctx: &mut Context, buffer_type: BufferType, data: &[T]) -> Buffer {
-        let index_type = if buffer_type == BufferType::IndexBuffer {
-            Some(IndexType::for_type::<T>())
-        } else {
-            None
-        };
 
         let gl_target = match buffer_type {
             BufferType::VertexBuffer => GL_ARRAY_BUFFER,
@@ -1007,7 +1021,7 @@ impl Buffer {
         unsafe {
             glGenBuffers(1, &mut gl_buf as *mut _);
             ctx.cache.store_buffer_binding(gl_target);
-            ctx.cache.bind_buffer(gl_target, gl_buf, index_type);
+            ctx.cache.bind_buffer(gl_target, gl_buf);
             glBufferData(gl_target, size as _, std::ptr::null() as *const _, gl_usage);
             glBufferSubData(gl_target, 0, size as _, data.as_ptr() as *const _);
             ctx.cache.restore_buffer_binding(gl_target);
@@ -1015,7 +1029,6 @@ impl Buffer {
 
         Buffer {
             gl_buf,
-            index_type,
         }
     }
 }
