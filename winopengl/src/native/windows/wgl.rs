@@ -179,7 +179,7 @@ unsafe fn get_wgl_proc_address<T>(libopengl32: &mut LibOpengl32, proc: &str) -> 
     if proc.is_null() {
         return None;
     }
-    return Some(std::mem::transmute_copy(&proc));
+    Some(std::mem::transmute_copy(&proc))
 }
 
 impl Wgl {
@@ -221,7 +221,7 @@ impl Wgl {
             if let Some(getExtensionsStringEXT) = GetExtensionsStringEXT {
                 let extensions = getExtensionsStringEXT();
 
-                if extensions.is_null() == false {
+                if !extensions.is_null() {
                     let extensions_string = std::ffi::CStr::from_ptr(extensions).to_string_lossy();
                     if extensions_string.contains(ext) {
                         return true;
@@ -231,7 +231,7 @@ impl Wgl {
 
             if let Some(getExtensionsStringARB) = GetExtensionsStringARB {
                 let extensions = getExtensionsStringARB((display.libopengl32.wglGetCurrentDC)());
-                if extensions.is_null() == false {
+                if !extensions.is_null() {
                     let extensions_string = std::ffi::CStr::from_ptr(extensions).to_string_lossy();
 
                     if extensions_string.contains(ext) {
@@ -239,7 +239,7 @@ impl Wgl {
                     }
                 }
             }
-            return false;
+            false
         };
 
         let arb_multisample = wgl_ext_supported("WGL_ARB_multisample");
@@ -275,7 +275,7 @@ impl Wgl {
         ) {
             panic!("WGL: Failed to retrieve pixel format attribute");
         }
-        return value;
+        value
     }
 
     unsafe fn wgl_find_pixel_format(&self, display: &mut Display, sample_count: i32) -> u32 {

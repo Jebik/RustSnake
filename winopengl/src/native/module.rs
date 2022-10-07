@@ -32,7 +32,7 @@ mod windows {
             if proc.is_null() {
                 return Err(Error::DlSymError);
             }
-            return Ok(unsafe { std::mem::transmute_copy(&proc) });
+            Ok(unsafe { std::mem::transmute_copy(&proc) })
         }
     }
 

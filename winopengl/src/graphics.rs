@@ -105,7 +105,7 @@ pub struct ShaderMeta {
     pub images: Vec<String>,
 }
 
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum VertexStep {
     PerVertex,
     PerInstance,
@@ -239,13 +239,10 @@ impl GlCache {
                 }
             }
         } 
-        else 
-        {
-            if self.index_buffer != buffer {
-                self.index_buffer = buffer;
-                unsafe {
-                    glBindBuffer(target, buffer);
-                }
+        else if self.index_buffer != buffer {
+            self.index_buffer = buffer;
+            unsafe {
+                glBindBuffer(target, buffer);
             }
         }
     }
@@ -557,7 +554,7 @@ impl Context {
                 GL_TRIANGLES,
                 num_elements,
                 GL_UNSIGNED_SHORT,
-                (2 as i32 * base_element) as *mut _,
+                (2_i32 * base_element) as *mut _,
                 num_instances,
             );
         }
@@ -750,7 +747,7 @@ impl Pipeline {
                     );
                     vertex_layout[attr_loc as usize] = Some(attr);
                 }
-                buffer_data.offset += 8 as i64
+                buffer_data.offset += 8_i64
             }
         }
 
@@ -788,7 +785,7 @@ pub struct Bindings {
     pub images: Vec<Texture>,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum BufferType {
     VertexBuffer,
     IndexBuffer,

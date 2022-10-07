@@ -111,7 +111,6 @@ unsafe fn create_window(
     wndclassw.cbWndExtra = std::mem::size_of::<*mut std::ffi::c_void>() as i32;
     RegisterClassW(&wndclassw);
 
-    let win_style: DWORD;
     let win_ex_style: DWORD = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
     let mut rect = RECT {
         left: 0,
@@ -119,7 +118,8 @@ unsafe fn create_window(
         right: 0,
         bottom: 0,
     };
-    win_style = WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
+    
+    let win_style: DWORD = WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
 
     rect.right = width;
     rect.bottom = height;
@@ -144,10 +144,10 @@ unsafe fn create_window(
         GetModuleHandleW(NULL as _), // hInstance
         NULL as _,                   // lparam
     );
-    assert!(hwnd.is_null() == false);
+    assert!(!hwnd.is_null());
     ShowWindow(hwnd, SW_SHOW);
     let dc = GetDC(hwnd);
-    assert!(dc.is_null() == false);
+    assert!(!dc.is_null());
 
     (hwnd, dc)
 }
@@ -172,7 +172,7 @@ unsafe fn create_msg_window() -> (HWND, HDC) {
         NULL,
     );
     assert!(
-        msg_hwnd.is_null() == false,
+        !msg_hwnd.is_null(),
         "Win32: failed to create helper window!"
     );
     ShowWindow(msg_hwnd, SW_HIDE);
@@ -183,7 +183,7 @@ unsafe fn create_msg_window() -> (HWND, HDC) {
     }
     let msg_dc = GetDC(msg_hwnd);
     assert!(
-        msg_dc.is_null() == false,
+        !msg_dc.is_null(),
         "Win32: failed to obtain helper window DC!"
     );
 
@@ -198,7 +198,7 @@ impl Display {
             proc_ptr = GetProcAddress(self.libopengl32.module.0, proc.as_ptr());
         }
         assert!(
-            proc_ptr.is_null() == false,
+            !proc_ptr.is_null(),
             "Load GL func {:?} failed.",
             stringify!($fn)
         );
