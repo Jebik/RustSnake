@@ -2,8 +2,69 @@ use std::{ffi::CString, mem};
 mod texture;
 use std::{error::Error, fmt::Display};
 pub use texture::{Texture};
-use crate::gl::{GLuint, glGetUniformLocation, GL_FLOAT, GLint, GLenum, GL_ARRAY_BUFFER, glBindBuffer, glActiveTexture, glBindTexture, GL_TEXTURE0, GL_TEXTURE_2D, GL_ELEMENT_ARRAY_BUFFER, glGetIntegerv, GL_FRAMEBUFFER_BINDING, glGenVertexArrays, glBindVertexArray, glUseProgram, glEnable, glDisable, glFrontFace, GL_SCISSOR_TEST, GL_DEPTH_TEST, GL_CCW, glScissor, glUniform1i, glVertexAttribPointer, GL_FALSE, glVertexAttribDivisor, glEnableVertexAttribArray, glDisableVertexAttribArray, GL_COLOR_BUFFER_BIT, glClearColor, GL_DEPTH_BUFFER_BIT, glClearDepthf, glClear, glViewport, glBindFramebuffer, GL_FRAMEBUFFER, glDrawElementsInstanced, GL_TRIANGLES, GL_UNSIGNED_SHORT, glUniform2fv, GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, glAttachShader, glCreateProgram, glLinkProgram, GL_LINK_STATUS, glGetProgramiv, GL_INFO_LOG_LENGTH, glGetProgramInfoLog, glCreateShader, glShaderSource, glCompileShader, glGetShaderiv, GL_COMPILE_STATUS, glGetShaderInfoLog, glGetAttribLocation, GL_STATIC_DRAW, glGenBuffers, glBufferData, glBufferSubData};
 use crate::graphics::GraphicsContext as Context;
+use crate::gl::{
+    GLuint, 
+    GLint, 
+    GLenum, 
+    glGetUniformLocation, 
+    glBindBuffer, 
+    glActiveTexture, 
+    glBindTexture, 
+    glGetIntegerv, 
+    glGenVertexArrays, 
+    glBindVertexArray, 
+    glUseProgram,
+    glEnable, 
+    glDisable, 
+    glFrontFace, 
+    glScissor, 
+    glUniform1i, 
+    glVertexAttribPointer, 
+    glVertexAttribDivisor, 
+    glEnableVertexAttribArray, 
+    glDisableVertexAttribArray, 
+    glGenBuffers, 
+    glBufferData, 
+    glBufferSubData, 
+    glGetProgramInfoLog, 
+    glCreateShader, 
+    glShaderSource, 
+    glCompileShader, 
+    glGetShaderiv, 
+    glGetShaderInfoLog, 
+    glGetAttribLocation,
+    glGetProgramiv, 
+    glAttachShader, 
+    glCreateProgram, 
+    glLinkProgram,
+    glUniform2fv, 
+    glDrawElementsInstanced,  
+    glClearDepthf, 
+    glClear, 
+    glViewport, 
+    glBindFramebuffer,  
+    glClearColor, 
+    GL_FLOAT,
+    GL_ARRAY_BUFFER, 
+    GL_TEXTURE0, 
+    GL_TEXTURE_2D, 
+    GL_ELEMENT_ARRAY_BUFFER, 
+    GL_FRAMEBUFFER_BINDING, 
+    GL_SCISSOR_TEST, 
+    GL_DEPTH_TEST, 
+    GL_CCW, GL_FALSE,
+    GL_COLOR_BUFFER_BIT,
+    GL_DEPTH_BUFFER_BIT,
+    GL_FRAMEBUFFER,
+    GL_TRIANGLES, 
+    GL_UNSIGNED_SHORT, 
+    GL_VERTEX_SHADER, 
+    GL_FRAGMENT_SHADER,
+    GL_LINK_STATUS, 
+    GL_INFO_LOG_LENGTH,
+    GL_COMPILE_STATUS, 
+    GL_STATIC_DRAW};
 
 const FLOAT2_SIZE:usize = 8;
 
@@ -333,7 +394,7 @@ impl Context {
         }
     }
 
-    
+
     pub fn apply_bindings(&mut self, bindings: &Bindings) {
         let pip = &self.pipelines[self.cache.cur_pipeline.unwrap().0];
         let shader = &self.shaders[pip.shader.0];

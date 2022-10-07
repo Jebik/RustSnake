@@ -1,5 +1,90 @@
 #![allow(non_camel_case_types, non_snake_case, non_upper_case_globals)]
 
+/*
+use crate::gl::{
+    GLuint, 
+    GLint, 
+    GLenum, 
+    glGetUniformLocation, 
+    glBindBuffer, 
+    glActiveTexture, 
+    glBindTexture, 
+    glGetIntegerv, 
+    glGenVertexArrays, 
+    glBindVertexArray, 
+    glUseProgram,
+    glEnable, 
+    glDisable, 
+    glFrontFace, 
+    glScissor, 
+    glUniform1i, 
+    glVertexAttribPointer, 
+    glVertexAttribDivisor, 
+    glEnableVertexAttribArray, 
+    glDisableVertexAttribArray, 
+    glGenBuffers, 
+    glBufferData, 
+    glBufferSubData, 
+    glGetProgramInfoLog, 
+    glCreateShader, 
+    glShaderSource, 
+    glCompileShader, 
+    glGetShaderiv, 
+    glGetShaderInfoLog, 
+    glGetAttribLocation,
+    glGetProgramiv, 
+    glAttachShader, 
+    glCreateProgram, 
+    glLinkProgram,
+    glUniform2fv, 
+    glDrawElementsInstanced,  
+    glClearDepthf, 
+    glClear, 
+    glViewport, 
+    glBindFramebuffer,  
+    glClearColor, 
+    GL_FLOAT,
+    GL_ARRAY_BUFFER, 
+    GL_TEXTURE0, 
+    GL_TEXTURE_2D, 
+    GL_ELEMENT_ARRAY_BUFFER, 
+    GL_FRAMEBUFFER_BINDING, 
+    GL_SCISSOR_TEST, 
+    GL_DEPTH_TEST, 
+    GL_CCW, GL_FALSE,
+    GL_COLOR_BUFFER_BIT,
+    GL_DEPTH_BUFFER_BIT,
+    GL_FRAMEBUFFER,
+    GL_TRIANGLES, 
+    GL_UNSIGNED_SHORT, 
+    GL_VERTEX_SHADER, 
+    GL_FRAGMENT_SHADER,
+    GL_LINK_STATUS, 
+    GL_INFO_LOG_LENGTH,
+    GL_COMPILE_STATUS, 
+    GL_STATIC_DRAW};
+    use crate::gl::{
+    GLuint, 
+    GL_RGB, 
+    GL_UNSIGNED_BYTE, 
+    GL_CLAMP_TO_EDGE, 
+    GL_LINEAR, 
+    GL_UNPACK_ALIGNMENT, 
+    GL_TEXTURE_2D, 
+    GL_TEXTURE_SWIZZLE_A, 
+    GL_ALPHA, 
+    GL_TEXTURE_WRAP_S,
+    GL_TEXTURE_WRAP_T, 
+    GL_TEXTURE_MIN_FILTER, 
+    GL_TEXTURE_MAG_FILTER,
+    glGenTextures, 
+    glPixelStorei, 
+    glTexParameteri, glTexImage2D
+};
+
+*/
+
+
 pub type GLenum = ::std::os::raw::c_uint;
 pub type GLboolean = ::std::os::raw::c_uchar;
 pub type GLbitfield = ::std::os::raw::c_uint;
@@ -626,9 +711,7 @@ gl_loader!(
     fn glEndQuery(target: GLenum) -> (),
     fn glGenQueries(n: GLsizei, ids: *mut GLuint) -> (),
     fn glGetQueryObjectiv(id: GLuint, pname: GLenum, params: *mut GLint) -> (),
-    fn glGetQueryObjectui64v(id: GLuint, pname: GLenum, params: *mut GLuint64) -> (),
-    fn glFlush() -> (),
-    fn glFinish() -> ()
+    fn glGetQueryObjectui64v(id: GLuint, pname: GLenum, params: *mut GLuint64) -> ()
 );
 
 // note that glGetString only works after first glSwapBuffer,
