@@ -842,21 +842,10 @@ impl IndexType {
     }
 }
 
-#[derive(Debug, PartialEq, Clone, Copy)]
-pub struct PipelineParams {
-    pub primitive_type: PrimitiveType,
-}
+//CLEANED
 
 #[derive(Copy, Clone, Debug)]
 pub struct Pipeline(usize);
-impl Default for PipelineParams {
-    fn default() -> PipelineParams {
-        PipelineParams {
-            primitive_type: PrimitiveType::Triangles,
-        }
-    }
-}
-
 impl Pipeline {
     pub fn new(
         ctx: &mut Context,
