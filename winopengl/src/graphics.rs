@@ -2,7 +2,7 @@ use std::{ffi::CString, mem};
 mod texture;
 use std::{error::Error, fmt::Display};
 pub use texture::{FilterMode, Texture, TextureAccess, TextureFormat, TextureParams, TextureWrap};
-use crate::gl::{GLuint, glGetUniformLocation, GL_FLOAT, GLint, GLenum, GL_ARRAY_BUFFER, glBindBuffer, glActiveTexture, glBindTexture, GL_TEXTURE0, GL_TEXTURE_2D, GL_ELEMENT_ARRAY_BUFFER, glGetIntegerv, GL_FRAMEBUFFER_BINDING, glGenVertexArrays, glBindVertexArray, glUseProgram, glEnable, glDisable, glFrontFace, GL_SCISSOR_TEST, GL_DEPTH_TEST, GL_CCW, glScissor, glUniform1i, glVertexAttribPointer, GL_FALSE, glVertexAttribDivisor, glEnableVertexAttribArray, glDisableVertexAttribArray, GL_COLOR_BUFFER_BIT, glClearColor, GL_DEPTH_BUFFER_BIT, glClearDepthf, glClear, glViewport, glBindFramebuffer, GL_FRAMEBUFFER, glDrawElementsInstanced, GL_TRIANGLES, GL_UNSIGNED_SHORT, glUniform2fv, GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, glAttachShader, glCreateProgram, glLinkProgram, GL_LINK_STATUS, glGetProgramiv, GL_INFO_LOG_LENGTH, glGetProgramInfoLog, glCreateShader, glShaderSource, glCompileShader, glGetShaderiv, GL_COMPILE_STATUS, glGetShaderInfoLog, GL_NEVER, GL_LEQUAL, GL_LESS, GL_GREATER, GL_GEQUAL, GL_EQUAL, GL_NOTEQUAL, GL_ALWAYS, GL_FUNC_ADD, GL_FUNC_SUBTRACT, GL_FUNC_REVERSE_SUBTRACT, GL_ZERO, GL_ONE, GL_SRC_COLOR, GL_SRC_ALPHA, GL_DST_COLOR, GL_DST_ALPHA, GL_ONE_MINUS_SRC_COLOR, GL_ONE_MINUS_SRC_ALPHA, GL_ONE_MINUS_DST_COLOR, GL_ONE_MINUS_DST_ALPHA, GL_SRC_ALPHA_SATURATE, glGetAttribLocation, GL_STATIC_DRAW, glGenBuffers, glBufferData, glBufferSubData};
+use crate::gl::{GLuint, glGetUniformLocation, GL_FLOAT, GLint, GLenum, GL_ARRAY_BUFFER, glBindBuffer, glActiveTexture, glBindTexture, GL_TEXTURE0, GL_TEXTURE_2D, GL_ELEMENT_ARRAY_BUFFER, glGetIntegerv, GL_FRAMEBUFFER_BINDING, glGenVertexArrays, glBindVertexArray, glUseProgram, glEnable, glDisable, glFrontFace, GL_SCISSOR_TEST, GL_DEPTH_TEST, GL_CCW, glScissor, glUniform1i, glVertexAttribPointer, GL_FALSE, glVertexAttribDivisor, glEnableVertexAttribArray, glDisableVertexAttribArray, GL_COLOR_BUFFER_BIT, glClearColor, GL_DEPTH_BUFFER_BIT, glClearDepthf, glClear, glViewport, glBindFramebuffer, GL_FRAMEBUFFER, glDrawElementsInstanced, GL_TRIANGLES, GL_UNSIGNED_SHORT, glUniform2fv, GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, glAttachShader, glCreateProgram, glLinkProgram, GL_LINK_STATUS, glGetProgramiv, GL_INFO_LOG_LENGTH, glGetProgramInfoLog, glCreateShader, glShaderSource, glCompileShader, glGetShaderiv, GL_COMPILE_STATUS, glGetShaderInfoLog, glGetAttribLocation, GL_STATIC_DRAW, glGenBuffers, glBufferData, glBufferSubData};
 use crate::graphics::GraphicsContext as Context;
 
 const FLOAT2_SIZE:usize = 8;
@@ -45,39 +45,6 @@ pub struct ShaderMeta {
 }
 
 #[derive(Clone, Copy, PartialEq, Debug)]
-pub enum VertexFormat {
-    Float2,
-    Float4,
-    Mat4
-}
-
-impl VertexFormat {
-    pub fn size(&self) -> i32 {
-        match self {
-            VertexFormat::Float2 => 2,
-            VertexFormat::Float4 => 4,
-            VertexFormat::Mat4 => 16,
-        }
-    }
-
-    pub fn byte_len(&self) -> i32 {
-        match self {
-            VertexFormat::Float2 => 2 * 4,
-            VertexFormat::Float4 => 4 * 4,
-            VertexFormat::Mat4 => 16 * 4,
-        }
-    }
-
-    fn type_(&self) -> GLuint {
-        match self {
-            VertexFormat::Float2 => GL_FLOAT,
-            VertexFormat::Float4 => GL_FLOAT,
-            VertexFormat::Mat4 => GL_FLOAT,
-        }
-    }
-}
-
-#[derive(Clone, Copy, PartialEq, Debug)]
 pub enum VertexStep {
     PerVertex,
     PerInstance,
@@ -90,51 +57,25 @@ impl Default for VertexStep {
 }
 
 #[derive(Clone, Debug)]
-pub struct BufferLayout {
-    pub stride: i32,
-    pub step_func: VertexStep,
-    pub step_rate: i32,
-}
-
-impl Default for BufferLayout {
-    fn default() -> BufferLayout {
-        BufferLayout {
-            stride: 0,
-            step_func: VertexStep::PerVertex,
-            step_rate: 1,
-        }
-    }
-}
-
-#[derive(Clone, Debug)]
 pub struct VertexAttribute {
     pub name: &'static str,
-    pub format: VertexFormat,
     pub buffer_index: usize,
 }
 
 impl VertexAttribute {
-    pub const fn new(name: &'static str, format: VertexFormat) -> VertexAttribute {
-        Self::with_buffer(name, format, 0)
+    pub const fn new(name: &'static str) -> VertexAttribute {
+        Self::with_buffer(name, 0)
     }
 
     pub const fn with_buffer(
         name: &'static str,
-        format: VertexFormat,
         buffer_index: usize,
     ) -> VertexAttribute {
         VertexAttribute {
             name,
-            format,
             buffer_index,
         }
     }
-}
-
-#[derive(Clone, Debug)]
-pub struct PipelineLayout {
-    pub buffers: &'static [BufferLayout],
-    pub attributes: &'static [VertexAttribute],
 }
 
 #[derive(Clone, Debug, Copy)]
@@ -389,14 +330,6 @@ impl Context {
             unsafe {
                 glFrontFace(GL_CCW);
             }
-        }
-    }
-
-    /// Set a new scissor rectangle.
-    /// Should be applied after begin_pass.
-    pub fn apply_scissor_rect(&mut self, x: i32, y: i32, w: i32, h: i32) {
-        unsafe {
-            glScissor(x, y, w, h);
         }
     }
 
@@ -677,118 +610,6 @@ pub fn load_shader(shader_type: GLenum, source: &str) -> Result<GLuint, ShaderEr
     }
 }
 
-/// Specify whether front- or back-facing polygons can be culled.
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub enum CullFace {
-    Nothing,
-    Front,
-    Back,
-}
-
-/// Define front- and back-facing polygons.
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub enum FrontFaceOrder {
-    Clockwise,
-    CounterClockwise,
-}
-
-/// A pixel-wise comparison function.
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub enum Comparison {
-    Never,
-    Less,
-    LessOrEqual,
-    Greater,
-    GreaterOrEqual,
-    Equal,
-    NotEqual,
-    Always,
-}
-
-impl From<Comparison> for GLenum {
-    fn from(cmp: Comparison) -> Self {
-        match cmp {
-            Comparison::Never => GL_NEVER,
-            Comparison::Less => GL_LESS,
-            Comparison::LessOrEqual => GL_LEQUAL,
-            Comparison::Greater => GL_GREATER,
-            Comparison::GreaterOrEqual => GL_GEQUAL,
-            Comparison::Equal => GL_EQUAL,
-            Comparison::NotEqual => GL_NOTEQUAL,
-            Comparison::Always => GL_ALWAYS,
-        }
-    }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//CLEANED
-
 #[derive(Copy, Clone, Debug)]
 pub struct Pipeline(usize);
 impl Pipeline {
@@ -815,7 +636,6 @@ impl Pipeline {
             vec![BufferCacheData::default(); 1];
 
         for VertexAttribute {
-            format,
             buffer_index,
             ..
         } in attributes
@@ -824,26 +644,17 @@ impl Pipeline {
                 .get_mut(*buffer_index)
                 .unwrap_or_else(|| panic!());
 
-            cache.stride += format.byte_len();
+            cache.stride += 8;
             // WebGL 1 limitation
             assert!(cache.stride <= 255);
         }
 
         let program = ctx.shaders[shader.0].program;
 
-        let attributes_len = attributes
-            .iter()
-            .map(|layout| match layout.format {
-                VertexFormat::Mat4 => 4,
-                _ => 1,
-            })
-            .sum();
-
-        let mut vertex_layout: Vec<Option<VertexAttributeInternal>> = vec![None; attributes_len];
+        let mut vertex_layout: Vec<Option<VertexAttributeInternal>> = vec![None; 2];
 
         for VertexAttribute {
             name,
-            format,
             buffer_index,
         } in attributes
         {
@@ -855,21 +666,14 @@ impl Pipeline {
             let attr_loc = if attr_loc == -1 { None } else { Some(attr_loc) };
             let divisor = 0;
 
-            let mut attributes_count: usize = 1;
-            let mut format = *format;
-
-            if format == VertexFormat::Mat4 {
-                format = VertexFormat::Float4;
-                attributes_count = 4;
-            }
-            for i in 0..attributes_count {
+            for i in 0..1 {
                 if let Some(attr_loc) = attr_loc {
                     let attr_loc = attr_loc as GLuint + i as GLuint;
 
                     let attr = VertexAttributeInternal {
                         attr_loc,
-                        size: format.size(),
-                        type_: format.type_(),
+                        size: 2,
+                        type_: GL_FLOAT,
                         offset: buffer_data.offset,
                         stride: buffer_data.stride,
                         buffer_index: *buffer_index,
@@ -884,7 +688,7 @@ impl Pipeline {
                     );
                     vertex_layout[attr_loc as usize] = Some(attr);
                 }
-                buffer_data.offset += format.byte_len() as i64
+                buffer_data.offset += 8 as i64
             }
         }
 

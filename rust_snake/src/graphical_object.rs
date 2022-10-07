@@ -2,7 +2,7 @@ use std::time::SystemTime;
 
 use winopengl::{
     Bindings, Buffer, BufferType, GraphicsContext, Pipeline, Shader, Texture,
-    VertexAttribute, VertexFormat, TextureParams, ShaderMeta, UniformBlockLayout, UniformDesc,
+    VertexAttribute, TextureParams, ShaderMeta, UniformBlockLayout, UniformDesc,
 };
 
 use crate::{pos::Pos, texture::TextureData, game::{SCREEN_WIDTH_FLOAT, SCREEN_HEIGHT_FLOAT}};
@@ -109,8 +109,8 @@ fn init_pipeline(ctx: &mut GraphicsContext, body: bool) -> Pipeline {
     Pipeline::new(
         ctx,
         &[
-            VertexAttribute::new("pos", VertexFormat::Float2),
-            VertexAttribute::new("uv", VertexFormat::Float2),
+            VertexAttribute::new("pos"),
+            VertexAttribute::new("uv"),
         ],
         shader)
 }
