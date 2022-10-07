@@ -2,7 +2,7 @@ use std::time::SystemTime;
 
 use winopengl::{
     Bindings, Buffer, BufferType, GraphicsContext, Pipeline, Shader, Texture,
-    VertexAttribute, TextureParams, ShaderMeta, UniformBlockLayout, UniformDesc,
+    VertexAttribute, ShaderMeta, UniformBlockLayout, UniformDesc,
 };
 
 use crate::{pos::Pos, texture::TextureData, game::{SCREEN_WIDTH_FLOAT, SCREEN_HEIGHT_FLOAT}};
@@ -79,12 +79,7 @@ fn init_bindings(ctx: &mut GraphicsContext, texture: TextureData, ) -> Bindings 
     let indices: [u16; 6] = [0, 1, 2, 0, 2, 3];
     let index_buffer = Buffer::immutable(ctx, BufferType::IndexBuffer, &indices);
 
-    let param = TextureParams
-    {
-        width: texture.width as _,
-        height: texture.height as _,
-    };
-    let texture = Texture::from_data_and_format(ctx, &texture.data as &[u8], param);
+    let texture = Texture::new(ctx, &texture.data as &[u8], texture.width as _, texture.height as _);
     
     Bindings {
         vertex_buffers: vec![vertex_buffer],

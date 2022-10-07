@@ -7,33 +7,15 @@ pub struct Texture {
     pub width: u32,
     pub height: u32,
 }
-impl Default for TextureParams {
-    fn default() -> Self {
-        TextureParams {
-            width: 0,
-            height: 0,
-        }
-    }
-}
-
-#[derive(Debug, Copy, Clone)]
-pub struct TextureParams {
-    pub width: u32,
-    pub height: u32,
-}
 
 impl Texture {
     pub fn new(
         ctx: &mut GraphicsContext,
-        bytes: Option<&[u8]>,
-        params: TextureParams,
+        bytes: &[u8],
+        width: u32,
+        height: u32,
     ) -> Texture {
-        if let Some(bytes_data) = bytes {
-            assert_eq!(
-                (3*params.width*params.height) as usize,
-                bytes_data.len()
-            );
-        }
+        assert_eq!((3*width*height) as usize, bytes.len());
         ctx.cache.store_texture_binding(0);
 
         let mut texture: GLuint = 0;
@@ -49,15 +31,12 @@ impl Texture {
                 GL_TEXTURE_2D,
                 0,
                 GL_RGB as i32,
-                params.width as i32,
-                params.height as i32,
+                width as i32,
+                height as i32,
                 0,
                 GL_RGB,
                 GL_UNSIGNED_BYTE,
-                match bytes {
-                    Some(bytes) => bytes.as_ptr() as *const _,
-                    Option::None => std::ptr::null(),
-                },
+                bytes.as_ptr() as *const _,
             );
 
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE as i32);
@@ -69,13 +48,8 @@ impl Texture {
 
         Texture {
             texture,
-            width: params.width,
-            height: params.height,
+            width,
+            height,
         }
-    }
-
-    /// Upload texture to GPU with given TextureParams
-    pub fn from_data_and_format(ctx: &mut GraphicsContext, bytes: &[u8], params: TextureParams) -> Texture {
-        Self::new(ctx, Some(bytes), params)
     }
 }
