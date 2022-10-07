@@ -333,6 +333,7 @@ impl Context {
         }
     }
 
+    
     pub fn apply_bindings(&mut self, bindings: &Bindings) {
         let pip = &self.pipelines[self.cache.cur_pipeline.unwrap().0];
         let shader = &self.shaders[pip.shader.0];

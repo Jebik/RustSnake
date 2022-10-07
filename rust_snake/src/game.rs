@@ -2,7 +2,7 @@ use std::{ffi::CString, time::Duration};
 
 use winopengl::{EventHandler, GraphicsContext, KeyCode};
 use rand::Rng;
-use winapi::um::winuser::{MessageBoxA, MB_OK, MB_ICONINFORMATION, SetWindowTextA};
+use winapi::um::winuser::{MessageBoxA, MB_OK, MB_ICONINFORMATION};
 
 mod bonus;
 mod snake;
@@ -89,7 +89,7 @@ impl Game
         }
     }
 
-    fn real_game_update(&mut self) 
+    fn real_game_update(&mut self, ctx: &mut GraphicsContext) 
     {
         //MovingSnake and Checking if reach a case
         let reach = self.snake.check_reach(self.difficulty.move_duration);
@@ -110,7 +110,7 @@ impl Game
                 //We got apple
                 self.score += self.difficulty.score_per_bonus;
                 self.snake.start();
-                self.update_title();
+                self.update_title(ctx);
                 self.bonus_list.remove(i);
                 self.get_new_difficulty();
                 self.snake.grow();
@@ -146,19 +146,12 @@ impl Game
         }
     }
 
-    fn update_title(&self) {
+    fn update_title(&self, ctx: &mut GraphicsContext) {        
         //WIN API MESSAGE SCORE
         let mut title = "AmbuSnake".to_owned();
         title += " Score: ";
         title += &self.score.to_string();
-    
-        let lp_text = CString::new(title).unwrap();
-        unsafe {
-            SetWindowTextA(
-                std::ptr::null_mut(),
-                lp_text.as_ptr(),
-            );
-        }
+        ctx.set_title(title);
     }
 }
 
@@ -249,11 +242,11 @@ impl EventHandler for Game
         }
     }
 
-    fn update(&mut self, _ctx: &mut GraphicsContext) 
+    fn update(&mut self, ctx: &mut GraphicsContext) 
     { 
         if self.running
         {
-            self.real_game_update();
+            self.real_game_update(ctx);
         }
     }
 

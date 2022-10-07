@@ -1,3 +1,5 @@
+use std::ffi::CString;
+
 use crate::{
     conf::Conf,
     native::NativeDisplayData,
@@ -6,13 +8,12 @@ use crate::{
 
 use winapi::{
     shared::{
-        minwindef::{DWORD, HINSTANCE, HIWORD, LPARAM, LRESULT, UINT, WPARAM},
-        ntdef::{HRESULT, NULL},
-        windef::{HDC, HMONITOR, HWND, POINT, RECT},
+        minwindef::{DWORD, HIWORD, LPARAM, LRESULT, UINT, WPARAM},
+        ntdef::{NULL},
+        windef::{HDC, HWND, RECT},
     },
     um::{
-        libloaderapi::{FreeLibrary, GetModuleHandleW, GetProcAddress, LoadLibraryA},
-        shellscalingapi::*,
+        libloaderapi::{GetModuleHandleW, GetProcAddress},
         wingdi::*,
         winuser::*,
     },
@@ -25,11 +26,9 @@ mod wgl;
 use libopengl32::LibOpengl32;
 
 pub(crate) struct Display {
-    dpi_aware: bool,
     display_data: NativeDisplayData,
     content_scale: f32,
     window_scale: f32,
-    mouse_scale: f32,
     libopengl32: LibOpengl32,
     _msg_wnd: HWND,
     msg_dc: HDC,
@@ -40,6 +39,17 @@ pub(crate) struct Display {
 impl crate::native::NativeDisplay for Display {
     fn order_quit(&mut self) {
         self.display_data.quit_ordered = true;
+    }
+
+    fn set_title(&mut self, title: String) {       
+        let lp_text = CString::new(title).unwrap();
+
+        unsafe {
+            SetWindowTextA(
+                self.wnd,
+                lp_text.as_ptr(),
+            );
+        }
     }
 
     fn as_any(&mut self) -> &mut dyn std::any::Any {
@@ -221,90 +231,6 @@ impl Display {
         }
         return false;
     }
-
-    unsafe fn init_dpi(&mut self, high_dpi: bool) {
-        unsafe fn get_proc_address<T>(lib: HINSTANCE, proc: &[u8]) -> Option<T> {
-            let proc = GetProcAddress(lib, proc.as_ptr() as *const _);
-
-            if proc.is_null() {
-                return None;
-            }
-            return Some(std::mem::transmute_copy(&proc));
-        }
-
-        let user32 = LoadLibraryA(b"user32.dll\0".as_ptr() as *const _);
-
-        let mut setprocessdpiaware: Option<extern "system" fn() -> bool> = None;
-        if user32.is_null() == false {
-            setprocessdpiaware = get_proc_address(user32, b"SetProcessDPIAware\0");
-        }
-
-        let shcore = LoadLibraryA(b"shcore.dll\0".as_ptr() as *const _);
-
-        let mut setprocessdpiawareness: Option<
-            extern "system" fn(_: PROCESS_DPI_AWARENESS) -> HRESULT,
-        > = None;
-        let mut getdpiformonitor: Option<
-            extern "system" fn(
-                _: HMONITOR,
-                _: MONITOR_DPI_TYPE,
-                _: *mut UINT,
-                _: *mut UINT,
-            ) -> HRESULT,
-        > = None;
-
-        if shcore.is_null() == false {
-            setprocessdpiawareness = get_proc_address(shcore, b"SetProcessDpiAwareness\0");
-            getdpiformonitor = get_proc_address(shcore, b"GetDpiForMonitor\0");
-        }
-
-        if let Some(setprocessdpiawareness) = setprocessdpiawareness {
-            // if the app didn't request HighDPI rendering, let Windows do the upscaling
-            let mut process_dpi_awareness = PROCESS_SYSTEM_DPI_AWARE;
-            self.dpi_aware = true;
-            if !high_dpi {
-                process_dpi_awareness = PROCESS_DPI_UNAWARE;
-                self.dpi_aware = false;
-            }
-            setprocessdpiawareness(process_dpi_awareness);
-        } else if let Some(setprocessdpiaware) = setprocessdpiaware {
-            setprocessdpiaware();
-            self.dpi_aware = true;
-        }
-        // get dpi scale factor for main monitor
-        if let Some(getdpiformonitor) = getdpiformonitor {
-            if self.dpi_aware {
-                let pt = POINT { x: 1, y: 1 };
-                let hm = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
-                let mut dpix: UINT = 0;
-                let mut dpiy: UINT = 0;
-                let hr = getdpiformonitor(
-                    hm,
-                    MDT_EFFECTIVE_DPI,
-                    &mut dpix as *mut _ as _,
-                    &mut dpiy as *mut _ as _,
-                );
-                assert_eq!(hr, 0);
-                //  clamp window scale to an integer factor
-                self.window_scale = dpix as f32 / 96.0;
-            }
-        } else {
-            self.window_scale = 1.0;
-        }
-        if high_dpi {
-            self.content_scale = self.window_scale;
-            self.mouse_scale = 1.0;
-        } else {
-            self.content_scale = 1.0;
-            self.mouse_scale = 1.0 / self.window_scale;
-        }
-        if !user32.is_null() {
-            FreeLibrary(user32);
-        }
-        if !shcore.is_null() {
-            FreeLibrary(shcore);
-        }
-    }
 }
 
 pub fn run<F>(conf: &Conf, f: F)
@@ -321,9 +247,7 @@ where
 
         let (msg_wnd, msg_dc) = create_msg_window();
         let mut display = Display {
-            dpi_aware: false,
             content_scale: 1.,
-            mouse_scale: 1.,
             window_scale: 1.,
             display_data: Default::default(),
             libopengl32,
@@ -334,7 +258,7 @@ where
         };
 
         display.update_dimensions(wnd);
-        display.init_dpi(false);
+       // display.init_dpi(false);
 
         let mut wgl = wgl::Wgl::new(&mut display);
         let gl_ctx = wgl.create_context(
@@ -374,9 +298,6 @@ where
             p.event_handler.update(p.context.with_display(&mut p.display));
             p.event_handler.draw(p.context.with_display(&mut p.display));
             SwapBuffers(p.display.dc);
-            if p.display.display_data.quit_requested {
-                PostMessageW(p.display.wnd, WM_CLOSE, 0, 0);
-            }
         }
         (p.display.libopengl32.wglDeleteContext)(gl_ctx);
         DestroyWindow(wnd);

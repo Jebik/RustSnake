@@ -28,6 +28,10 @@ impl GraphicsContext {
     pub fn order_quit(&mut self) {
         self.display_mut().order_quit();
     }
+    pub fn set_title(&mut self, title: String)
+    {
+        self.display_mut().set_title(title);
+    }
 }
 
 /// Start miniquad.
