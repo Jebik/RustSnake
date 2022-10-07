@@ -2,16 +2,12 @@
 /// Maybe something like this may in some public API some day?
 /// (important data from this struct is available through function like Context::screen_size)
 pub(crate) struct NativeDisplayData {
-    pub screen_width: i32,
-    pub screen_height: i32,
     pub quit_ordered: bool,
 }
 
 impl Default for NativeDisplayData {
     fn default() -> NativeDisplayData {
         NativeDisplayData {
-            screen_width: 1,
-            screen_height: 1,
             quit_ordered: false,
         }
     }

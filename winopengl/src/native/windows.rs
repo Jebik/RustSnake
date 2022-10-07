@@ -27,8 +27,6 @@ use libopengl32::LibOpengl32;
 
 pub(crate) struct Display {
     display_data: NativeDisplayData,
-    content_scale: f32,
-    window_scale: f32,
     libopengl32: LibOpengl32,
     _msg_wnd: HWND,
     msg_dc: HDC,
@@ -206,31 +204,6 @@ impl Display {
         );
         Some(std::mem::transmute(proc_ptr))
     }
-
-    /// updates current window and framebuffer size from the window's client rect,
-    /// returns true if size has changed
-    unsafe fn update_dimensions(&mut self, hwnd: HWND) -> bool {
-        let mut rect: RECT = std::mem::zeroed();
-
-        if GetClientRect(hwnd, &mut rect as *mut _ as _) != 0 {
-            let window_width = ((rect.right - rect.left) as f32 / self.window_scale) as i32;
-            let window_height = ((rect.bottom - rect.top) as f32 / self.window_scale) as i32;
-            let fb_width = (window_width as f32 * self.content_scale) as i32;
-            let fb_height = (window_height as f32 * self.content_scale) as i32;
-            if fb_width != self.display_data.screen_width
-                || fb_height != self.display_data.screen_height
-            {
-                // prevent a framebuffer size of 0 when window is minimized
-                self.display_data.screen_width = fb_width.max(1);
-                self.display_data.screen_height = fb_height.max(1);
-                return true;
-            }
-        } else {
-            self.display_data.screen_width = 1;
-            self.display_data.screen_height = 1;
-        }
-        return false;
-    }
 }
 
 pub fn run<F>(conf: &Conf, f: F)
@@ -247,8 +220,6 @@ where
 
         let (msg_wnd, msg_dc) = create_msg_window();
         let mut display = Display {
-            content_scale: 1.,
-            window_scale: 1.,
             display_data: Default::default(),
             libopengl32,
             _msg_wnd: msg_wnd,
@@ -256,9 +227,6 @@ where
             wnd,
             dc,
         };
-
-        display.update_dimensions(wnd);
-       // display.init_dpi(false);
 
         let mut wgl = wgl::Wgl::new(&mut display);
         let gl_ctx = wgl.create_context(
