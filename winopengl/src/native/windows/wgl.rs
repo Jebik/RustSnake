@@ -1,4 +1,4 @@
-#![allow(dead_code, non_snake_case)]
+#![allow(non_snake_case)]
 use winapi::{
     shared::{
         minwindef::{INT, UINT},
@@ -17,42 +17,17 @@ pub const WGL_TYPE_RGBA_ARB: u32 = 0x202b;
 pub const WGL_ACCELERATION_ARB: u32 = 0x2003;
 pub const WGL_NO_ACCELERATION_ARB: u32 = 0x2025;
 pub const WGL_RED_BITS_ARB: u32 = 0x2015;
-pub const WGL_RED_SHIFT_ARB: u32 = 0x2016;
 pub const WGL_GREEN_BITS_ARB: u32 = 0x2017;
-pub const WGL_GREEN_SHIFT_ARB: u32 = 0x2018;
 pub const WGL_BLUE_BITS_ARB: u32 = 0x2019;
-pub const WGL_BLUE_SHIFT_ARB: u32 = 0x201a;
 pub const WGL_ALPHA_BITS_ARB: u32 = 0x201b;
-pub const WGL_ALPHA_SHIFT_ARB: u32 = 0x201c;
-pub const WGL_ACCUM_BITS_ARB: u32 = 0x201d;
-pub const WGL_ACCUM_RED_BITS_ARB: u32 = 0x201e;
-pub const WGL_ACCUM_GREEN_BITS_ARB: u32 = 0x201f;
-pub const WGL_ACCUM_BLUE_BITS_ARB: u32 = 0x2020;
-pub const WGL_ACCUM_ALPHA_BITS_ARB: u32 = 0x2021;
 pub const WGL_DEPTH_BITS_ARB: u32 = 0x2022;
 pub const WGL_STENCIL_BITS_ARB: u32 = 0x2023;
-pub const WGL_AUX_BUFFERS_ARB: u32 = 0x2024;
-pub const WGL_STEREO_ARB: u32 = 0x2012;
 pub const WGL_DOUBLE_BUFFER_ARB: u32 = 0x2011;
 pub const WGL_SAMPLES_ARB: u32 = 0x2042;
-pub const WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB: u32 = 0x20a9;
-pub const WGL_CONTEXT_DEBUG_BIT_ARB: u32 = 0x00000001;
-pub const WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB: u32 = 0x00000002;
-pub const WGL_CONTEXT_PROFILE_MASK_ARB: u32 = 0x9126;
 pub const WGL_CONTEXT_CORE_PROFILE_BIT_ARB: u32 = 0x00000001;
-pub const WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB: u32 = 0x00000002;
 pub const WGL_CONTEXT_MAJOR_VERSION_ARB: u32 = 0x2091;
 pub const WGL_CONTEXT_MINOR_VERSION_ARB: u32 = 0x2092;
 pub const WGL_CONTEXT_FLAGS_ARB: u32 = 0x2094;
-pub const WGL_CONTEXT_ROBUST_ACCESS_BIT_ARB: u32 = 0x00000004;
-pub const WGL_LOSE_CONTEXT_ON_RESET_ARB: u32 = 0x8252;
-pub const WGL_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB: u32 = 0x8256;
-pub const WGL_NO_RESET_NOTIFICATION_ARB: u32 = 0x8261;
-pub const WGL_CONTEXT_RELEASE_BEHAVIOR_ARB: u32 = 0x2097;
-pub const WGL_CONTEXT_RELEASE_BEHAVIOR_NONE_ARB: u32 = 0;
-pub const WGL_CONTEXT_RELEASE_BEHAVIOR_FLUSH_ARB: u32 = 0x2098;
-pub const WGL_COLORSPACE_EXT: u32 = 0x309d;
-pub const WGL_COLORSPACE_SRGB_EXT: u32 = 0x3089;
 pub const ERROR_INVALID_VERSION_ARB: u32 = 0x2095;
 pub const ERROR_INVALID_PROFILE_ARB: u32 = 0x2096;
 pub const ERROR_INCOMPATIBLE_DEVICE_CONTEXTS_ARB: u32 = 0x2054;
@@ -188,8 +163,6 @@ pub unsafe fn gl_choose_fbconfig(
 
 pub struct Wgl {
     GetPixelFormatAttribivARB: Option<GetPixelFormatAttribivARB>,
-    GetExtensionsStringEXT: Option<GetExtensionsStringEXT>,
-    GetExtensionsStringARB: Option<GetExtensionsStringARB>,
     CreateContextAttribsARB: Option<CreateContextAttribsARB>,
     SwapIntervalEXT: Option<SwapIntervalEXT>,
 
@@ -197,7 +170,6 @@ pub struct Wgl {
     arb_create_context: bool,
     arb_create_context_profile: bool,
     ext_swap_control: bool,
-    arb_pixel_format: bool,
 }
 
 unsafe fn get_wgl_proc_address<T>(libopengl32: &mut LibOpengl32, proc: &str) -> Option<T> {
@@ -281,8 +253,6 @@ impl Wgl {
 
         Wgl {
             GetPixelFormatAttribivARB,
-            GetExtensionsStringEXT,
-            GetExtensionsStringARB,
             CreateContextAttribsARB,
             SwapIntervalEXT,
 
@@ -290,7 +260,6 @@ impl Wgl {
             arb_create_context,
             arb_create_context_profile,
             ext_swap_control,
-            arb_pixel_format,
         }
     }
 

@@ -30,13 +30,7 @@ pub trait NativeDisplay: std::any::Any {
 }
 
 pub mod module;
-
-#[cfg(target_os = "windows")]
 pub mod windows;
-
-// there is no glGetProcAddr on webgl, so its impossible to make "gl" module work
-// on macos.. well, there is, but way easier to just statically link to gl
-#[cfg(not(any(target_arch = "wasm32", target_os = "macos")))]
 pub mod gl;
 
 pub mod query_stab;

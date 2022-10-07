@@ -1,4 +1,21 @@
-use crate::gl::{GLuint, GL_RGB, GL_UNSIGNED_BYTE, GL_CLAMP_TO_EDGE, GL_LINEAR, glGenTextures, glPixelStorei, GL_UNPACK_ALIGNMENT, glTexParameteri, GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_A, GL_ALPHA, glTexImage2D, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_MAG_FILTER};
+use crate::gl::{
+    GLuint, 
+    GL_RGB, 
+    GL_UNSIGNED_BYTE, 
+    GL_CLAMP_TO_EDGE, 
+    GL_LINEAR, 
+    GL_UNPACK_ALIGNMENT, 
+    GL_TEXTURE_2D, 
+    GL_TEXTURE_SWIZZLE_A, 
+    GL_ALPHA, 
+    GL_TEXTURE_WRAP_S,
+    GL_TEXTURE_WRAP_T, 
+    GL_TEXTURE_MIN_FILTER, 
+    GL_TEXTURE_MAG_FILTER,
+    glGenTextures, 
+    glPixelStorei, 
+    glTexParameteri, glTexImage2D
+};
 use crate::graphics::GraphicsContext;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]

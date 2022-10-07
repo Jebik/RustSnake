@@ -14,6 +14,5 @@ pub enum KeyCode {
 pub trait EventHandler {
     fn update(&mut self, _ctx: &mut GraphicsContext);
     fn draw(&mut self, _ctx: &mut GraphicsContext);
-
     fn key_down_event(&mut self, _ctx: &mut GraphicsContext, _keycode: KeyCode) {}
 }
