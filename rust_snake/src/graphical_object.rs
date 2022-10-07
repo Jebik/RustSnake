@@ -81,9 +81,6 @@ fn init_bindings(ctx: &mut GraphicsContext, texture: TextureData, ) -> Bindings 
 
     let param = TextureParams
     {
-        format: winopengl::TextureFormat::RGB8,
-        wrap: winopengl::TextureWrap::Clamp,
-        filter: winopengl::FilterMode::Linear,
         width: texture.width as _,
         height: texture.height as _,
     };

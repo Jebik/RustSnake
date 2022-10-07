@@ -1,7 +1,7 @@
 use std::{ffi::CString, mem};
 mod texture;
 use std::{error::Error, fmt::Display};
-pub use texture::{FilterMode, Texture, TextureAccess, TextureFormat, TextureParams, TextureWrap};
+pub use texture::{Texture, TextureAccess, TextureParams};
 use crate::gl::{GLuint, glGetUniformLocation, GL_FLOAT, GLint, GLenum, GL_ARRAY_BUFFER, glBindBuffer, glActiveTexture, glBindTexture, GL_TEXTURE0, GL_TEXTURE_2D, GL_ELEMENT_ARRAY_BUFFER, glGetIntegerv, GL_FRAMEBUFFER_BINDING, glGenVertexArrays, glBindVertexArray, glUseProgram, glEnable, glDisable, glFrontFace, GL_SCISSOR_TEST, GL_DEPTH_TEST, GL_CCW, glScissor, glUniform1i, glVertexAttribPointer, GL_FALSE, glVertexAttribDivisor, glEnableVertexAttribArray, glDisableVertexAttribArray, GL_COLOR_BUFFER_BIT, glClearColor, GL_DEPTH_BUFFER_BIT, glClearDepthf, glClear, glViewport, glBindFramebuffer, GL_FRAMEBUFFER, glDrawElementsInstanced, GL_TRIANGLES, GL_UNSIGNED_SHORT, glUniform2fv, GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, glAttachShader, glCreateProgram, glLinkProgram, GL_LINK_STATUS, glGetProgramiv, GL_INFO_LOG_LENGTH, glGetProgramInfoLog, glCreateShader, glShaderSource, glCompileShader, glGetShaderiv, GL_COMPILE_STATUS, glGetShaderInfoLog, glGetAttribLocation, GL_STATIC_DRAW, glGenBuffers, glBufferData, glBufferSubData};
 use crate::graphics::GraphicsContext as Context;
 
