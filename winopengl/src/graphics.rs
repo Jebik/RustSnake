@@ -209,8 +209,6 @@ struct ShaderInternal {
     uniforms: Vec<ShaderUniform>,
 }
 
-type ColorMask = (bool, bool, bool, bool);
-
 #[derive(Default, Copy, Clone)]
 struct CachedAttribute {
     attribute: VertexAttributeInternal,
@@ -390,24 +388,11 @@ impl Context {
                 glEnable(GL_SCISSOR_TEST);
             }
 
-            if pipeline.params.depth_write {
-                unsafe {
-                    glEnable(GL_DEPTH_TEST);
-                    glDepthFunc(pipeline.params.depth_test.into())
-                }
-            } else {
-                unsafe {
-                    glDisable(GL_DEPTH_TEST);
-                }
+            unsafe {
+                glDisable(GL_DEPTH_TEST);
             }
-
-            match pipeline.params.front_face_order {
-                FrontFaceOrder::Clockwise => unsafe {
-                    glFrontFace(GL_CW);
-                },
-                FrontFaceOrder::CounterClockwise => unsafe {
-                    glFrontFace(GL_CCW);
-                },
+            unsafe {
+                glFrontFace(GL_CCW);
             }
         }
     }
@@ -581,13 +566,11 @@ impl Context {
             return;
         }
 
-        let pip = &self.pipelines[self.cache.cur_pipeline.unwrap().0];
-        let primitive_type = pip.params.primitive_type.into();
         let index_type = self.cache.index_type.expect("Unset index buffer type");
 
         unsafe {
             glDrawElementsInstanced(
-                primitive_type,
+                GL_TRIANGLES,
                 num_elements,
                 index_type.into(),
                 (index_type.size() as i32 * base_element) as *mut _,
@@ -816,19 +799,11 @@ impl From<BlendFactor> for GLenum {
     }
 }
 
+
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum PrimitiveType {
     Triangles,
     Lines,
-}
-
-impl From<PrimitiveType> for GLenum {
-    fn from(primitive_type: PrimitiveType) -> Self {
-        match primitive_type {
-            PrimitiveType::Triangles => GL_TRIANGLES,
-            PrimitiveType::Lines => GL_LINES,
-        }
-    }
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -869,12 +844,6 @@ impl IndexType {
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct PipelineParams {
-    pub cull_face: CullFace,
-    pub front_face_order: FrontFaceOrder,
-    pub depth_test: Comparison,
-    pub depth_write: bool,
-    pub depth_write_offset: Option<(f32, f32)>,
-    pub color_write: ColorMask,
     pub primitive_type: PrimitiveType,
 }
 
@@ -883,12 +852,6 @@ pub struct Pipeline(usize);
 impl Default for PipelineParams {
     fn default() -> PipelineParams {
         PipelineParams {
-            cull_face: CullFace::Nothing,
-            front_face_order: FrontFaceOrder::CounterClockwise,
-            depth_test: Comparison::Always, // no depth test,
-            depth_write: false,             // no depth write,
-            depth_write_offset: None,
-            color_write: (true, true, true, true),
             primitive_type: PrimitiveType::Triangles,
         }
     }
@@ -897,19 +860,16 @@ impl Default for PipelineParams {
 impl Pipeline {
     pub fn new(
         ctx: &mut Context,
-        buffer_layout: &[BufferLayout],
         attributes: &[VertexAttribute],
         shader: Shader,
     ) -> Pipeline {
-        Self::with_params(ctx, buffer_layout, attributes, shader, Default::default())
+        Self::with_params(ctx, attributes, shader)
     }
 
     pub fn with_params(
         ctx: &mut Context,
-        buffer_layout: &[BufferLayout],
         attributes: &[VertexAttribute],
         shader: Shader,
-        params: PipelineParams,
     ) -> Pipeline {
         #[derive(Clone, Copy, Default)]
         struct BufferCacheData {
@@ -918,7 +878,7 @@ impl Pipeline {
         }
 
         let mut buffer_cache: Vec<BufferCacheData> =
-            vec![BufferCacheData::default(); buffer_layout.len()];
+            vec![BufferCacheData::default(); 1];
 
         for VertexAttribute {
             format,
@@ -926,16 +886,11 @@ impl Pipeline {
             ..
         } in attributes
         {
-            let layout = buffer_layout.get(*buffer_index).unwrap_or_else(|| panic!());
             let mut cache = buffer_cache
                 .get_mut(*buffer_index)
                 .unwrap_or_else(|| panic!());
 
-            if layout.stride == 0 {
-                cache.stride += format.byte_len();
-            } else {
-                cache.stride = layout.stride;
-            }
+            cache.stride += format.byte_len();
             // WebGL 1 limitation
             assert!(cache.stride <= 255);
         }
@@ -961,16 +916,10 @@ impl Pipeline {
             let mut buffer_data = &mut buffer_cache
                 .get_mut(*buffer_index)
                 .unwrap_or_else(|| panic!());
-            let layout = buffer_layout.get(*buffer_index).unwrap_or_else(|| panic!());
-
             let cname = CString::new(*name).unwrap_or_else(|e| panic!("{}", e));
             let attr_loc = unsafe { glGetAttribLocation(program, cname.as_ptr() as *const _) };
             let attr_loc = if attr_loc == -1 { None } else { Some(attr_loc) };
-            let divisor = if layout.step_func == VertexStep::PerVertex {
-                0
-            } else {
-                layout.step_rate
-            };
+            let divisor = 0;
 
             let mut attributes_count: usize = 1;
             let mut format = *format;
@@ -1008,7 +957,6 @@ impl Pipeline {
         let pipeline = PipelineInternal {
             layout: vertex_layout,
             shader,
-            params,
         };
 
         ctx.pipelines.push(pipeline);
@@ -1030,7 +978,6 @@ struct VertexAttributeInternal {
 struct PipelineInternal {
     layout: Vec<Option<VertexAttributeInternal>>,
     shader: Shader,
-    params: PipelineParams,
 }
 
 /// Geometry bindings

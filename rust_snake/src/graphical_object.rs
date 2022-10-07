@@ -1,7 +1,7 @@
 use std::time::SystemTime;
 
 use winopengl::{
-    Bindings, Buffer, BufferLayout, BufferType, GraphicsContext, Pipeline, Shader, Texture,
+    Bindings, Buffer, BufferType, GraphicsContext, Pipeline, Shader, Texture,
     VertexAttribute, VertexFormat, TextureParams, ShaderMeta, UniformBlockLayout, UniformDesc,
 };
 
@@ -108,12 +108,11 @@ fn init_pipeline(ctx: &mut GraphicsContext, body: bool) -> Pipeline {
 
     Pipeline::new(
         ctx,
-        &[BufferLayout::default()],
         &[
             VertexAttribute::new("pos", VertexFormat::Float2),
             VertexAttribute::new("uv", VertexFormat::Float2),
         ],
-        shader,)
+        shader)
 }
 
 fn get_rot_vertex(rotation: ROTATION, width: f32, height: f32) -> [Vertex; 4] {
