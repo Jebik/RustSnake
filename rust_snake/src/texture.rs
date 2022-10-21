@@ -1,4 +1,4 @@
-use jpeg_decoder::Decoder;
+
 pub struct TextureData
 {    
     pub width: u16,
@@ -6,24 +6,30 @@ pub struct TextureData
     pub data: Vec<u8>,
 }
 extern crate bmp;
-use bmp::{Image, Pixel};
-pub fn get_texture(file_data: &[u8]) -> TextureData {
-    let mut file = Decoder::new(file_data); 
-    let pixels = file.decode().expect("failed to decode image");
-    let metadata = file.info().unwrap();
-    let mut img = Image::new(256, 256);
 
-    for (x, y) in img.coordinates() {
-        img.set_pixel(x, y, Pixel::new(255, 0, 0));
-    }
-    let _ = img.save("img.bmp");
+pub fn get_texture(file_data: &[u8]) -> TextureData {
+    let file = bmp::open("./images/SnakeHeadBorder.bmp"); 
+    let pixels = file.unwrap();
+    
     //LOADING IMAGE;
-    let width:u16 = metadata.width as _;
-    let height:u16 = metadata.height as _;
+    let width = pixels.get_width();
+    let height = pixels.get_height();
+
+    let mut data = Vec::new();
+    for i in 0..width
+    {
+        for j in 0..height
+        {
+            let p = pixels.get_pixel(i, j);
+            data.push(p.r);
+            data.push(p.g);
+            data.push(p.b);
+        }
+    }
     TextureData
     {
-        width,
-        height,
-        data:pixels
+        width: width as _,
+        height: height as _,
+        data: data
     }
 }

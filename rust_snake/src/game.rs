@@ -11,7 +11,7 @@ use crate::pos::Pos;
 
 use self::{snake::{Snake, Dir}, bonus::Bonus, background::Background};
 
-use crate::images::jpg as Images;
+use crate::images::bmp as Images;
 pub const BOX_SIZE: i16 = 64;
 pub const SCREEN_WIDTH: i16 = 1600;
 pub const SCREEN_HEIGHT: i16 = 896;

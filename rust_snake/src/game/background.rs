@@ -10,7 +10,7 @@ impl Background {
     pub(crate) fn new(ctx: &mut GraphicsContext) -> Background 
     { 
         //BG NOIR SI PAS D'IMAGE SIMPLE VECTEUR u8 de Size 1600x896x4
-        //let open_file = File::open("./Map/Strasbourg.jpg");
+        let open_file = File::open("./Map/Strasbourg.bmp");
         
         let buffer = vec![70u8; 1600*896*3];
         let mut texture = TextureData
@@ -18,8 +18,7 @@ impl Background {
             width: 1600,
             height: 896,
             data: buffer
-        }; 
-/* 
+        };
         if let Ok(file) = open_file
         {
             let mut file_buffer = Vec::new();
@@ -27,7 +26,7 @@ impl Background {
             reader.read_to_end(&mut file_buffer).expect("readError");
             texture = get_texture(&file_buffer as &[u8]);
         }
-*/
+
         Background 
         {
             graphic: GraphicalObject::new(ctx, texture, false) 
