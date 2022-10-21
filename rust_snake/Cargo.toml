@@ -8,6 +8,7 @@ edition = "2021"
 winopengl = { path = "../winopengl"}
 winapi = { version = "0.3", features = ["winuser"] }
 jpeg-decoder = "0.2.6"
+bmp = "0.5.0"
 rand = "0.8.5"
 
 [profile.release]
@@ -15,3 +16,4 @@ opt-level = "z"
 lto = true
 codegen-units = 1
 strip = true
+panic = 'abort'
