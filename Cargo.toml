@@ -2,4 +2,6 @@
 members = [
     "rust_snake",
     "winopengl",
+    "core_std",
+    "core_std_main",
 ]

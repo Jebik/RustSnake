@@ -1,5 +1,6 @@
 use std::ffi::CString;
 
+//#![no_std]
 use game::{SCREEN_HEIGHT, SCREEN_WIDTH};
 use winapi::um::winuser::{MessageBoxA, MB_ICONINFORMATION, MB_OK};
 use winopengl::conf::Conf;
@@ -8,12 +9,6 @@ mod texture;
 mod pos;
 mod images;
 mod game;
-
-
-//Create My miniquad
-//REMOVE ALL NON WINDOWS
-//REMOVE ALL UNUSED
-//SIMPLIFIE A LOT
 
 fn main() {
     let mut message_body = "Vous avez trouver le snake cacher\n".to_owned();

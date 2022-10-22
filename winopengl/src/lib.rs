@@ -1,6 +1,7 @@
 pub mod conf;
 mod event;
-pub mod graphics;pub mod native;
+pub mod graphics;
+pub mod native;
 pub use event::*;
 pub use graphics::*;
 pub use native::{gl, NativeDisplay};
