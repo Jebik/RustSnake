@@ -11,7 +11,7 @@ pub struct Vec<T> {
     pub len: usize,
     elem_size: usize
 }
-impl<T> Vec<T> {
+impl<T: core::fmt::Debug> Vec<T> {
     pub fn new() -> Self {
         let size = core::mem::size_of::<T>();
 
@@ -32,7 +32,7 @@ impl<T> Vec<T> {
         {
             let ptr = unsafe 
             {
-                realloc(self.ptr as *mut u8, self.len*self.elem_size) as *mut T
+                realloc(self.ptr as *mut u8, (self.len+1)*self.elem_size) as *mut T
             };
             self.ptr = ptr;
             self.memcpy(value, unsafe {self.ptr.add(self.len)});
@@ -55,17 +55,9 @@ impl<T> Vec<T> {
         }
     }
 
-    fn memcpy(&self, value: T, ptr: *mut T) {
+    fn memcpy(&self, value: T, ptr: *mut T) {      
         unsafe { *ptr = value; }
     }
-
-    /*
-    pub fn memcpy(from: &T, to: &T)
-    {
-
-    }*/
-
-
 }
 
 impl<T: core::fmt::Debug> Debug for Vec<T>
@@ -91,7 +83,7 @@ impl<T> Drop for Vec<T> {
         };
     }
 }
-impl<T> core::ops::Index<usize> for Vec<T> {
+impl<T: core::fmt::Debug> core::ops::Index<usize> for Vec<T> {
     type Output = T;
     fn index(&self, index: usize) -> &Self::Output {
         self.get(index).unwrap()
