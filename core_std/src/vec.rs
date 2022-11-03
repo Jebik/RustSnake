@@ -34,6 +34,12 @@ impl<T: core::fmt::Debug> Vec<T> {
             {
                 realloc(self.ptr as *mut u8, (self.len+1)*self.elem_size) as *mut T
             };
+            if ptr != self.ptr
+            {
+                println!("NEED REALLOC");
+                println!("PTR = {:?}", self.ptr);
+                println!("NEW PTR = {:?}", ptr);
+            }
             self.ptr = ptr;
             self.memcpy(value, unsafe {self.ptr.add(self.len)});
             self.len += 1;
